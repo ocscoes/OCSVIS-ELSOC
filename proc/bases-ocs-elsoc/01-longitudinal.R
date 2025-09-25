@@ -4,7 +4,7 @@
 # Institution: OCS
 # Responsible: René Canales
 
-# Executive Summary: This script contains the code to data preparation for analysis of cohesion and migration
+# Executive Summary: This script contains the code to data preparation for analysis of cohesion in VIS-ELSOC
 # Date: Sep 23, 2025
 
 # 1. Packages  -----------------------------------------------------
@@ -145,6 +145,14 @@ db %>%
 
 db$confianza_inter <- rowMeans(db[, c("confianza_gen", "altruismo_gen")], na.rm = TRUE)
 
+# Redes Sociales
+db %>% 
+  group_by(ola) %>% 
+  select(comportamiento_prosocial, ayuda_economica, confianza_inter) %>% 
+  frq()
+
+db$redes_sociales <- rowMeans(db[, c("comportamiento_prosocial", "ayuda_economica", "confianza_inter")], na.rm = TRUE)
+
 #----Seguridad-----
 
 frq(db$confianza_inter)
@@ -170,6 +178,15 @@ db$seguridad_obj <- (round(db$seguridad_obj * 2) / 2)
 
 frq(db$seguridad_obj)
 
+# Seguridad Pública
+
+db %>% 
+  group_by(ola) %>% 
+  select(seguridad_sub, seguridad_obj) %>% 
+  frq()
+
+db$seguridad_pub <- rowMeans(db[, c("seguridad_sub", "seguridad_obj")], na.rm = TRUE)
+
 #-----Vínculos Territoriales-----
 
 # sentido_pertenencia
@@ -193,6 +210,15 @@ db$satisfaccion_barrio <- rowMeans(db[, c("barrio_amigos", "barrio_sociable", "b
 db$satisfaccion_barrio <- (round(db$satisfaccion_barrio * 2) / 2)
 
 frq(db$satisfaccion_barrio)
+
+# Vínculos Territoriales
+
+db %>% 
+  group_by(ola) %>% 
+  select(sentido_pertenencia, satisfaccion_barrio) %>% 
+  frq()
+
+db$vinculos_territ <- rowMeans(db[, c("sentido_pertenencia", "satisfaccion_barrio")], na.rm = TRUE)
 
 # COHESIÓN VERTICAL
 
@@ -242,7 +268,7 @@ db %>%
   select(gobierno_firme, mandatario_fuerte,vida_disciplinar) %>% 
   frq()
 
-db$pref_aut <- rowMeans(db[, c("gobierno_firme", "mandatario_fuerte", "vida_disciplinar")], na.rm = TRUE)
+db$pref_autor <- rowMeans(db[, c("gobierno_firme", "mandatario_fuerte", "vida_disciplinar")], na.rm = TRUE)
 
 
 #-----Justicia Distributiva-----
@@ -252,7 +278,7 @@ db %>%
   select(justicia_pensiones, justicia_educacion, justicia_salud) %>% 
   frq()
 
-db$just_dist <- rowMeans(db[, c("justicia_pensiones", "justicia_educacion", "justicia_salud")], na.rm = TRUE)
+db$just_distrib <- rowMeans(db[, c("justicia_pensiones", "justicia_educacion", "justicia_salud")], na.rm = TRUE)
 
 
 # 3.4. Means by wave----
@@ -262,76 +288,117 @@ db$just_dist <- rowMeans(db[, c("justicia_pensiones", "justicia_educacion", "jus
 #---Tablas---
 
 # Confianza en Instituciones
-aggregate(cbind(conf_gobierno, conf_congreso, conf_pp) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(conf_inst_pol, conf_gobierno, conf_congreso, conf_pp) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Participación Política
-aggregate(cbind(firma_peticion, asiste_marcha, part_huelga, opinion_rrss) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(pp_politica, firma_peticion, asiste_marcha, part_huelga, opinion_rrss) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Autoeficacia Política
-aggregate(cbind(voto_deber, voto_influye, voto_expresion) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(auto_efic, voto_deber, voto_influye, voto_expresion) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Interés en Política
-aggregate(cbind(interes_politica, hablar_politica, infopolitica_medios) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(int_pol, interes_politica, hablar_politica, infopolitica_medios) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Preferencias Autoritarias
-aggregate(cbind(gobierno_firme, mandatario_fuerte, vida_disciplinar) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(pref_autor, gobierno_firme, mandatario_fuerte, vida_disciplinar) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Justicia Distributiva
-aggregate(cbind(justicia_pensiones, justicia_educacion, justicia_salud) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(just_distrib, justicia_pensiones, justicia_educacion, justicia_salud) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Seguridad
-aggregate(cbind(seguridad_obj, seguridad_sub) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(seguridad_pub, seguridad_obj, seguridad_sub) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Vínculos Territoriales
-aggregate(cbind(sentido_pertenencia, satisfaccion_barrio) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(vinculos_territ, sentido_pertenencia, satisfaccion_barrio) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 # Redes
-aggregate(cbind(comportamiento_prosocial, ayuda_economica, confianza_inter) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+aggregate(cbind(redes_sociales, comportamiento_prosocial, ayuda_economica, confianza_inter) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
 #---Gráfico----
 # Confianza en Instituciones
-conf_inst <- aggregate(cbind(conf_gobierno, conf_congreso, conf_pp) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(conf_inst$ola, conf_inst[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Confianza en Instituciones")
-legend("topright", legend = names(conf_inst)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+
+conf_inst <- aggregate(cbind(conf_inst_pol, conf_gobierno, conf_congreso, conf_pp) ~ ola, 
+                       data = db, FUN = mean, na.rm = TRUE)
+
+conf_inst$indicador_confianza <- rowMeans(conf_inst[,-1], na.rm = TRUE)
+
+matplot(conf_inst$ola, conf_inst[,c("conf_inst_pol", "conf_gobierno", "conf_congreso", "conf_pp")], 
+        type = "l", 
+        xlab = "Ola", ylab = "Promedio", 
+        main = "Confianza en Instituciones",
+        col = c("black", "red", "green", "orange"),
+        lty = 1:3,
+        lwd = 2)
+
+legend("topright", 
+       legend = c("Confianza General", "Gobierno", "Congreso", "Partidos Políticos"), 
+       col = c("black", "red", "green", "orange"), 
+       lty = 1:3,
+       lwd = 2,
+       cex = 0.8)
 
 # Participación Política
-part_pol <- aggregate(cbind(firma_peticion, asiste_marcha, part_huelga, opinion_rrss) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(part_pol$ola, part_pol[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Participación Política")
-legend("topright", legend = names(part_pol)[-1], col = 1:4, lty = 1:4, cex = 0.8)
+part_pol <- aggregate(cbind(pp_politica, firma_peticion, asiste_marcha, part_huelga, opinion_rrss) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(part_pol$ola, part_pol[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Participación Política",
+        col = c("black", "red", "green", "orange", "blue"), lty = 1:5, lwd = 2)
+legend("topright", legend = c("pp_politica", "Firma Petición", "Asiste Marcha", "Part. Huelga", "Opinión RRSS"), 
+       col = c("black", "red", "green", "orange", "blue"), lty = 1:5, lwd = 2, cex = 0.8)
 
 # Autoeficacia Política
-autoef_pol <- aggregate(cbind(voto_deber, voto_influye, voto_expresion) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(autoef_pol$ola, autoef_pol[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Autoeficacia Política")
-legend("topright", legend = names(autoef_pol)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+autoef_pol <- aggregate(cbind(auto_efic, voto_deber, voto_influye, voto_expresion) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(autoef_pol$ola, autoef_pol[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Autoeficacia Política",
+        col = c("black", "red", "forestgreen", "orange"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Autoeficacia General", "Voto Deber", "Voto Influye", "Voto Expresión"), 
+       col = c("black", "red", "forestgreen", "orange"), lty = 1:4, lwd = 2, cex = 0.8)
 
 # Interés en Política
-interes_pol <- aggregate(cbind(interes_politica, hablar_politica, infopolitica_medios) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(interes_pol$ola, interes_pol[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Interés en Política")
-legend("topright", legend = names(interes_pol)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+interes_pol <- aggregate(cbind(int_pol, interes_politica, hablar_politica, infopolitica_medios) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(interes_pol$ola, interes_pol[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Interés en Política",
+        col = c("black", "purple", "orange", "darkgreen"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Interés General", "Interés Política", "Hablar Política", "Info Medios"), 
+       col = c("black", "purple", "orange", "darkgreen"), lty = 1:4, lwd = 2, cex = 0.8)
 
 # Preferencias Autoritarias
-pref_aut <- aggregate(cbind(gobierno_firme, mandatario_fuerte, vida_disciplinar) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(pref_aut$ola, pref_aut[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Preferencias Autoritarias")
-legend("topright", legend = names(pref_aut)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+pref_aut <- aggregate(cbind(pref_autor, gobierno_firme, mandatario_fuerte, vida_disciplinar) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(pref_aut$ola, pref_aut[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Preferencias Autoritarias",
+        col = c("black", "darkred", "navy", "darkgreen"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Preferencias Autoritarias", "Gobierno Firme", "Mandatario Fuerte", "Vida Disciplinar"), 
+       col = c("black", "darkred", "navy", "darkgreen"), lty = 1:4, lwd = 2, cex = 0.8)
 
 # Justicia Distributiva
-just_dist <- aggregate(cbind(justicia_pensiones, justicia_educacion, justicia_salud) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(just_dist$ola, just_dist[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Justicia Distributiva")
-legend("topright", legend = names(just_dist)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+just_dist <- aggregate(cbind(just_distrib, justicia_pensiones, justicia_educacion, justicia_salud) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(just_dist$ola, just_dist[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Justicia Distributiva",
+        col = c("black", "darkgreen", "steelblue", "darkred"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Justicia Distributiva", "Justicia Pensiones", "Justicia Educación", "Justicia Salud"), 
+       col = c("black", "darkgreen", "steelblue", "darkred"), lty = 1:4, lwd = 2, cex = 0.8)
 
-# Seguridad
-seguridad <- aggregate(cbind(seguridad_obj, seguridad_sub) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(seguridad$ola, seguridad[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Seguridad")
-legend("topright", legend = names(seguridad)[-1], col = 1:2, lty = 1:2, cex = 0.8)
+# Seguridad (corregido el error en el nombre del objeto)
+seguridad <- aggregate(cbind(seguridad_pub, seguridad_obj, seguridad_sub) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(seguridad$ola, seguridad[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Seguridad",
+        col = c("black", "darkblue", "red"), lty = 1:3, lwd = 2)
+legend("topright", legend = c("Seguridad Pública", "Seguridad Objetiva", "Seguridad Subjetiva"), 
+       col = c("black", "darkblue", "red"), lty = 1:3, lwd = 2, cex = 0.8)
 
 # Vínculos Territoriales
-vinc_terr <- aggregate(cbind(sentido_pertenencia, satisfaccion_barrio) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(vinc_terr$ola, vinc_terr[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Vínculos Territoriales")
-legend("topright", legend = names(vinc_terr)[-1], col = 1:2, lty = 1:2, cex = 0.8)
+vinc_terr <- aggregate(cbind(vinculos_territ, sentido_pertenencia, satisfaccion_barrio) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(vinc_terr$ola, vinc_terr[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Vínculos Territoriales",
+        col = c("black", "forestgreen", "orange"), lty = 1:3, lwd = 2)
+legend("topright", legend = c("Vínculos Territoriales", "Sentido Pertenencia", "Satisfacción Barrio"), 
+       col = c("black", "forestgreen", "orange"), lty = 1:3, lwd = 2, cex = 0.8)
 
 # Redes
-redes <- aggregate(cbind(comportamiento_prosocial, ayuda_economica, confianza_inter) ~ ola, data = db, FUN = mean, na.rm = TRUE)
-matplot(redes$ola, redes[,-1], type = "l", xlab = "Ola", ylab = "Promedio", main = "Redes")
-legend("topright", legend = names(redes)[-1], col = 1:3, lty = 1:3, cex = 0.8)
+redes <- aggregate(cbind(redes_sociales, comportamiento_prosocial, ayuda_economica, confianza_inter) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(redes$ola, redes[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Redes",
+        col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Redes General", "Comportamiento Prosocial", "Ayuda Económica", "Confianza Inter"), 
+       col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2, cex = 0.8)
 
 
