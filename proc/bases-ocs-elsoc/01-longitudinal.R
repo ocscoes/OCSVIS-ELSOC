@@ -280,6 +280,29 @@ db %>%
 
 db$just_distrib <- rowMeans(db[, c("justicia_pensiones", "justicia_educacion", "justicia_salud")], na.rm = TRUE)
 
+###COHESIÓN HORIZONTAL###
+db %>% 
+  group_by(ola) %>% 
+  select(seguridad_sub, vinculos_territ, redes_sociales) %>% 
+  frq()
+
+db$coh_horiz <- rowMeans(db[, c("seguridad_sub", "vinculos_territ", "redes_sociales")], na.rm = TRUE)
+
+###COHESION VERTICAL###
+db %>% 
+  group_by(ola) %>% 
+  select(conf_inst_pol, pp_politica, auto_efic, int_pol, pref_autor, just_distrib) %>% 
+  frq()
+
+db$coh_vert <- rowMeans(db[, c("conf_inst_pol", "pp_politica", "auto_efic", "int_pol", "pref_autor", "just_distrib")], na.rm = TRUE)
+
+###COHESION GENERAL###
+db %>% 
+  group_by(ola) %>% 
+  select(coh_horiz, coh_vert) %>% 
+  frq()
+
+db$coh_gral <- rowMeans(db[, c("coh_horiz", "coh_vert")], na.rm = TRUE)
 
 # 3.4. Means by wave----
 
@@ -314,6 +337,9 @@ aggregate(cbind(vinculos_territ, sentido_pertenencia, satisfaccion_barrio) ~ ola
 # Redes
 aggregate(cbind(redes_sociales, comportamiento_prosocial, ayuda_economica, confianza_inter) ~ ola, data = db, FUN = mean, na.rm = TRUE)
 
+#Cohesion
+aggregate(cbind(coh_horiz, coh_vert) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+
 #---Gráfico----
 # Confianza en Instituciones
 
@@ -323,19 +349,11 @@ conf_inst <- aggregate(cbind(conf_inst_pol, conf_gobierno, conf_congreso, conf_p
 conf_inst$indicador_confianza <- rowMeans(conf_inst[,-1], na.rm = TRUE)
 
 matplot(conf_inst$ola, conf_inst[,c("conf_inst_pol", "conf_gobierno", "conf_congreso", "conf_pp")], 
-        type = "l", 
-        xlab = "Ola", ylab = "Promedio", 
-        main = "Confianza en Instituciones",
-        col = c("black", "red", "green", "orange"),
-        lty = 1:3,
-        lwd = 2)
+        type = "l", xlab = "Ola", ylab = "Promedio",  main = "Confianza en Instituciones", col = c("black", "red", "green", "orange"), lty = 1:3, lwd = 2)
 
 legend("topright", 
        legend = c("Confianza General", "Gobierno", "Congreso", "Partidos Políticos"), 
-       col = c("black", "red", "green", "orange"), 
-       lty = 1:3,
-       lwd = 2,
-       cex = 0.8)
+       col = c("black", "red", "green", "orange"), lty = 1:3, lwd = 2, cex = 0.8)
 
 # Participación Política
 part_pol <- aggregate(cbind(pp_politica, firma_peticion, asiste_marcha, part_huelga, opinion_rrss) ~ ola, data = db, FUN = mean, na.rm = TRUE)
@@ -400,5 +418,44 @@ matplot(redes$ola, redes[,-1], type = "l",
         col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2)
 legend("topright", legend = c("Redes General", "Comportamiento Prosocial", "Ayuda Económica", "Confianza Inter"), 
        col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2, cex = 0.8)
+
+# Cohesion
+
+## HORIZONTAL
+
+horizontal <- aggregate(cbind(coh_horiz, seguridad_pub, vinculos_territ, redes_sociales) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(horizontal$ola, horizontal[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Cohesión Horizontal",
+        col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2)
+legend("topright", legend = c("Cohesión General", "Seguridad", "Vínculos Territoriales", "Redes Sociales"), 
+       col = c("black", "purple", "darkorange", "darkgreen"), lty = 1:4, lwd = 2, cex = 0.8)
+
+
+## VERTICAL
+vertical <- aggregate(cbind(coh_vert, conf_inst_pol, pp_politica, auto_efic, int_pol, pref_autor, just_distrib) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+
+print(vertical)
+print(sapply(vertical[,-1], range, na.rm = TRUE))  # Ver rangos de cada variable
+
+matplot(vertical$ola, vertical[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Cohesión Vertical",
+        col = c("black", "purple", "darkorange", "darkred", "darkblue", "darkgreen", "gold"), 
+        lty = 1:7, lwd = 2,
+        ylim = range(vertical[,-1], na.rm = TRUE))  # Rango automático completo
+
+legend("topright", 
+       legend = c("Coh. Vertical", "Conf. Inst. Pol", "Part. Política", "Autoeficacia", "Interés Pol", "Pref. Autor", "Just. Distrib"), 
+       col = c("black", "purple", "darkorange", "darkred", "darkblue", "darkgreen", "gold"), 
+       lty = 1:7, lwd = 2, cex = 0.7)
+
+## COHESION GENERAL
+
+cohesion <- aggregate(cbind(coh_gral, coh_horiz, coh_vert) ~ ola, data = db, FUN = mean, na.rm = TRUE)
+matplot(cohesion$ola, cohesion[,-1], type = "l", 
+        xlab = "Ola", ylab = "Promedio", main = "Cohesión General",
+        col = c("black", "darkorange", "darkgreen"), lty = 1:3, lwd = 2)
+legend("topright", legend = c("Cohesión General", "Cohesión Horizontal", "Cohesión Vertical"), 
+       col = c("black", "darkorange", "darkgreen"), lty = 1:3, lwd = 2, cex = 0.8)
+
 
 
