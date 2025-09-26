@@ -15,10 +15,9 @@ pacman::p_load(tidyverse,
                sjmisc, 
                here,
                sjlabelled,
-               SciViews,
                naniar,
-               readxl,
-               sjPlot)
+               sjPlot,
+               psych)
 
 
 options(scipen=999)
@@ -27,6 +26,8 @@ rm(list = ls())
 # 2. Data -----------------------------------------------------------------
 
 load(url("https://dataverse.harvard.edu/api/access/datafile/10797987"))
+
+glimpse(elsoc_long_2016_2023)
 
 # 3.2 Processing -----------------------------------------------------------
 
@@ -38,6 +39,8 @@ elsoc_long_2016_2023[elsoc_long_2016_2023 ==-666] <- NA
 db <- elsoc_long_2016_2023 %>% 
   select(idencuesta, 
          ola,
+         muestra,
+         tipo_atricion,
          ponderador_long_total, 
          segmento, 
          estrato,
@@ -64,7 +67,6 @@ db <- elsoc_long_2016_2023 %>%
          altruismo_gen = c03,
          reunion_pub = c07_02, 
          voluntariado = c07_04,
-         donar_dinero = c07_05, 
          prestar_dinero = c07_06, 
          ayuda_trabajo = c07_08,
          conf_gobierno = c05_01, 
@@ -94,6 +96,8 @@ db <- elsoc_long_2016_2023 %>%
 # 3.2 Recode and transform ----
 
 # Ola
+frq(db$ola)
+
 db <- db %>% 
   mutate(ola = case_when(ola == 1 ~ "2016",
                           ola == 2 ~ "2017",
@@ -110,7 +114,12 @@ db <- db %>%
                                         "2022",
                                         "2023")))
 
-# 3.3 Index Creation ----
+
+# Atricion y tipo muestra
+frq(db$tipo_atricion)
+frq(db$muestra)
+
+# 3.2.1 Index Creation ----
 
 # COHESIÓN HORIZONTAL
 
@@ -123,9 +132,31 @@ db %>%
   select(reunion_pub, voluntariado) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(reunion_pub %in% c(1,2,3))),
+    n_validos = sum(reunion_pub %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(voluntariado %in% c(1,2,3))),
+    n_validos = sum(voluntariado %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+
 db$comportamiento_prosocial <- rowMeans(db[, c("reunion_pub", "voluntariado")], na.rm = TRUE)
 
-frq(db$comportamiento_prosocial)
+frq(db$comportamiento_prosocial);psych::describe(db$comportamiento_prosocial)
+
 # ayuda_economica
 
 db %>% 
@@ -133,9 +164,30 @@ db %>%
   select(prestar_dinero, ayuda_trabajo) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(prestar_dinero %in% c(1,2,3))),
+    n_validos = sum(prestar_dinero %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(ayuda_trabajo %in% c(1,2,3))),
+    n_validos = sum(ayuda_trabajo %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
 db$ayuda_economica <- rowMeans(db[, c("prestar_dinero", "ayuda_trabajo")], na.rm = TRUE)
 
-frq(db$ayuda_economica)
+frq(db$ayuda_economica);psych::describe(db$ayuda_economica)
+
 # confianza_inter
 
 db %>% 
@@ -143,7 +195,30 @@ db %>%
   select(confianza_gen, altruismo_gen) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(confianza_gen %in% c(1,2,3))),
+    n_validos = sum(confianza_gen %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(altruismo_gen %in% c(1,2,3))),
+    n_validos = sum(altruismo_gen %in% c(1,2,3)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
 db$confianza_inter <- rowMeans(db[, c("confianza_gen", "altruismo_gen")], na.rm = TRUE)
+
+frq(db$confianza_inter);psych::describe(db$confianza_inter)
+
 
 # Redes Sociales
 db %>% 
@@ -153,9 +228,10 @@ db %>%
 
 db$redes_sociales <- rowMeans(db[, c("comportamiento_prosocial", "ayuda_economica", "confianza_inter")], na.rm = TRUE)
 
+frq(db$redes_sociales);psych::describe(db$redes_sociales)
+
 #----Seguridad-----
 
-frq(db$confianza_inter)
 # seguridad_sub
 
 db %>% 
@@ -163,9 +239,30 @@ db %>%
   select(seguridad_sat, seguridad_perc) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(seguridad_sat %in% c(1:5))),
+    n_validos = sum(seguridad_sat %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(seguridad_perc %in% c(1:5))),
+    n_validos = sum(seguridad_perc %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
 db$seguridad_sub <- rowMeans(db[, c("seguridad_sat", "seguridad_perc")], na.rm = TRUE)
 
-frq(db$seguridad_sub)
+frq(db$seguridad_sub);psych::describe(db$seguridad_sub)
+
 # seguridad_obj
 
 db %>% 
@@ -173,10 +270,40 @@ db %>%
   select(peleas_calle, asaltos, trafico_drogas) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(peleas_calle %in% c(1:5))),
+    n_validos = sum(peleas_calle %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(asaltos %in% c(1:5))),
+    n_validos = sum(asaltos %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(trafico_drogas %in% c(1:5))),
+    n_validos = sum(trafico_drogas %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
 db$seguridad_obj <- rowMeans(db[, c("peleas_calle", "asaltos", "trafico_drogas")], na.rm = TRUE)
 db$seguridad_obj <- (round(db$seguridad_obj * 2) / 2)
 
-frq(db$seguridad_obj)
+frq(db$seguridad_obj);psych::describe(db$seguridad_obj)
 
 # Seguridad Pública
 
@@ -187,6 +314,8 @@ db %>%
 
 db$seguridad_pub <- rowMeans(db[, c("seguridad_sub", "seguridad_obj")], na.rm = TRUE)
 
+frq(db$seguridad_pub);psych::describe(db$seguridad_pub)
+
 #-----Vínculos Territoriales-----
 
 # sentido_pertenencia
@@ -196,15 +325,98 @@ db %>%
   select(barrio_ideal, barrio_integracion, barrio_identidad, barrio_pertenencia) %>% 
   frq()
 
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_ideal %in% c(1:5))),
+    n_validos = sum(barrio_ideal %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_integracion %in% c(1:5))),
+    n_validos = sum(barrio_integracion %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_identidad %in% c(1:5))),
+    n_validos = sum(barrio_identidad %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_pertenencia %in% c(1:5))),
+    n_validos = sum(barrio_pertenencia %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+
 db$sentido_pertenencia <- rowMeans(db[, c("barrio_ideal", "barrio_integracion", "barrio_identidad", "barrio_pertenencia")], na.rm = TRUE)
 db$sentido_pertenencia <- (round(db$sentido_pertenencia * 2) / 2)
 
 frq(db$sentido_pertenencia)
+
+
 # satisfaccion_barrio
 db %>% 
   group_by(ola) %>% 
   select(barrio_amigos, barrio_sociable, barrio_cordial, barrio_colaborador) %>% 
   frq()
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_amigos %in% c(1:5))),
+    n_validos = sum(barrio_amigos %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_sociable %in% c(1:5))),
+    n_validos = sum(barrio_sociable %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_cordial %in% c(1:5))),
+    n_validos = sum(barrio_cordial %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
+
+db %>%
+  group_by(ola) %>%
+  summarise(
+    n_total = n(),
+    n_invalidos = sum(!(barrio_colaborador %in% c(1:5))),
+    n_validos = sum(barrio_colaborador %in% c(1:5)),
+    total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
+    .groups = "drop"
+  )
 
 db$satisfaccion_barrio <- rowMeans(db[, c("barrio_amigos", "barrio_sociable", "barrio_cordial", "barrio_colaborador")], na.rm = TRUE)
 db$satisfaccion_barrio <- (round(db$satisfaccion_barrio * 2) / 2)
@@ -219,6 +431,7 @@ db %>%
   frq()
 
 db$vinculos_territ <- rowMeans(db[, c("sentido_pertenencia", "satisfaccion_barrio")], na.rm = TRUE)
+frq(db$vinculos_territ)
 
 # COHESIÓN VERTICAL
 
@@ -287,6 +500,7 @@ db %>%
   frq()
 
 db$coh_horiz <- rowMeans(db[, c("seguridad_sub", "vinculos_territ", "redes_sociales")], na.rm = TRUE)
+hist(db$coh_horiz)
 
 ###COHESION VERTICAL###
 db %>% 
@@ -295,7 +509,7 @@ db %>%
   frq()
 
 db$coh_vert <- rowMeans(db[, c("conf_inst_pol", "pp_politica", "auto_efic", "int_pol", "pref_autor", "just_distrib")], na.rm = TRUE)
-
+hist(db$coh_vert)
 ###COHESION GENERAL###
 db %>% 
   group_by(ola) %>% 
@@ -304,7 +518,16 @@ db %>%
 
 db$coh_gral <- rowMeans(db[, c("coh_horiz", "coh_vert")], na.rm = TRUE)
 
-# 3.4. Means by wave----
+hist(db$coh_gral)
+
+# 3.4 Check BBDD
+
+glimpse(db)
+
+sjPlot::view_df(db,
+                show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
+
+# 4 Means by wave----
 
 # Promedios de todos los indicadores por ola
 
