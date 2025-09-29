@@ -17,7 +17,8 @@ pacman::p_load(tidyverse,
                sjlabelled,
                naniar,
                sjPlot,
-               psych)
+               psych,
+               dplyr)
 
 
 options(scipen=999)
@@ -531,5 +532,46 @@ sjPlot::view_df(db,
 
 save(db, file = here ("data/bases-vis-elsoc/db_long.RData"))
 
+# 5 Database ID and Wave
 
+# ==========================================
+# BASE 1: Promedios por ID de encuesta
+# ==========================================
 
+db_promedios_id <- db %>%
+  group_by(idencuesta) %>%
+  summarise(
+    n_olas = n(),  # Cuenta en cuántas olas participó el id
+    across(where(is.numeric), 
+           ~mean(.x, na.rm = TRUE),
+           .names = "{.col}")
+  ) %>%
+  filter(n_olas >= 3)  # Filtrar solo los que participaron en 3 o más olas
+
+# Ver resultado
+head(db_promedios_id)
+dim(db_promedios_id)
+
+# ==========================================
+# BASE 2: Promedios por ola (sin NAs)
+# ==========================================
+
+db_promedios_ola <- db %>%
+  group_by(ola) %>%
+  summarise(across(where(is.numeric), 
+                   ~mean(.x, na.rm = TRUE),
+                   .names = "{.col}")) %>%
+  # Eliminar columnas que tienen NA en sus promedios
+  select(where(~!any(is.na(.))))
+
+# Ver resultado
+head(db_promedios_ola)
+dim(db_promedios_ola)
+
+# ==========================================
+# Guardar las bases resultantes
+# ==========================================
+
+# En RData
+save(db_promedios_id, file = here ("data/bases-vis-elsoc/db_promedios_id.RData"))
+save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
