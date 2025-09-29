@@ -557,6 +557,7 @@ dim(db_promedios_id)
 # ==========================================
 
 db_promedios_ola <- db %>%
+  select(-idencuesta, -muestra, -tipo_atricion, -ponderador_long_total) %>%  # Excluir variables
   group_by(ola) %>%
   summarise(across(where(is.numeric), 
                    ~mean(.x, na.rm = TRUE),
@@ -574,4 +575,26 @@ dim(db_promedios_ola)
 
 # En RData
 save(db_promedios_id, file = here ("data/bases-vis-elsoc/db_promedios_id.RData"))
+save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
+
+# ==========================================
+# BASE 3: Promedios por ola y tipo de muestra (sin NAs)
+# ==========================================
+
+db_promedios_ola_muestra <- db %>%
+  select(-idencuesta, -tipo_atricion, -ponderador_long_total) %>%  # Excluir variables
+  group_by(ola, muestra) %>%
+  summarise(across(where(is.numeric), 
+                   ~mean(.x, na.rm = TRUE),
+                   .names = "{.col}"),
+            .groups = "drop") %>%
+  # Eliminar columnas que tienen NA en sus promedios
+  select(where(~!any(is.na(.))))
+
+# Ver resultado
+head(db_promedios_ola_muestra)
+dim(db_promedios_ola_muestra)
+
+# Guardar
+save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola_muestra.RData"))
 save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
