@@ -582,7 +582,7 @@ shinyWidgets:::html_dependency_picker_bs(
 
 ## Cargar datos
 
-load("data/world_data.rdata")
+load("data/shiny-latam/world_data.rdata")
 
 if (!inherits(world_data, "sf")) {
   world_data <- st_as_sf(world_data)
@@ -594,7 +594,7 @@ step_size <- unique(diff(unique_years))
 
 # Bivariado
 
-load(file = "data/base_shiny_completa.rdata")
+load(file = "data/shiny-latam/base_shiny_completa.rdata")
 
 df_bivariado <- df %>% filter(País!="Bahamas" & País !="Grenada" & País != "Suriname",
                               !is.nan(Valor))
@@ -610,7 +610,7 @@ range_values <- df %>%
 
 # Base con jerarquías
 
-load(file = "data/base_shiny_indicadores.rdata")
+load(file = "data/shiny-latam/base_shiny_indicadores.rdata")
 
 df <- df_indicadores %>% filter(País!="Bahamas" & País !="Grenada" & País != "Suriname",
                                 Ola %% 2 == 0)
