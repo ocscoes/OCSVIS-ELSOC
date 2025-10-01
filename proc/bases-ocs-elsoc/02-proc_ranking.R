@@ -1134,3 +1134,5 @@ ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = pro
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
     axis.text = element_text(size = 10)
   )
+
+
