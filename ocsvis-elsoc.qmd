@@ -26,28 +26,16 @@ resources:
 # url_ocs   <- "https://ocs-coes.netlify.app/"
 
 ## Cargar librerías
-library(tidyverse)
-library(sf)
+
 #library(leaflet)
-library(plotly)
-library(shinyjs)
-library(shinyWidgets)
-library(shinyEffects)
-library(shinydashboardPlus)
-library(shinydashboard)
-library(ggrepel)
-library(cowplot)
 #library(magick)
 #library(highcharter)
-library(fontawesome)
-library(scales)
-library(ggthemes)
-library(RColorBrewer)
 # library(hrbrthemes)
-library(sjlabelled)
-library(V8)
 # library(Cairo)
-library(shinythemes)
+
+
+pacman::p_load(tidyverse, dplyr, ggplot2, sf, plotly, shinyjs, shinyWidgets, shinyEffects, shinydashboardPlus, shinydashboard, ggrepel, cowplot, fontawesome, scales, ggthemes, RColorBrewer, sjlabelled, V8, shinythemes)
+
 options(shiny.usecairo = TRUE)
 
 shinyWidgets:::html_dependency_picker_bs(
@@ -485,53 +473,41 @@ plotlyOutput("bar_plot")
 ## {.sidebar width="20%"}
 
 ```{r}
+# Selector de subdimensión
+selectInput(
+  inputId = "subdim_select",
+  label = "Seleccionar Subdimensión:",
+  choices = NULL,  # Se llenará en el server
+  selected = NULL
+)
 
-tags$style(HTML("
+# Selector de indicador (se actualiza según subdimensión)
+selectInput(
+  inputId = "indicator_select",
+  label = "Seleccionar Indicador:",
+  choices = NULL,
+  selected = NULL
+)
 
-  .styled-slider .irs-bar {
-    background: transparent !important;
-  }
-
-.styled-slider .irs-handle {
-    background: #497abd !important;
-    border: 1px solid #1c7bbf !important;
-    width: 20px;
-    height: 20px;
-    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
-    border: none;
-}
-"))
-
-# Control deslizante para seleccionar la "Ola" (año)
-tags$div(class = "styled-slider",
-sliderInput("Ola_bi", "Seleccione la Ola:",
-            min = min(unique_years_bi),
-            max = max(unique_years_bi),
-            value = max(unique_years_bi), # Por defecto, la última Ola
-            step = 2, # Pasos de 2 años
-            sep = "")) # Sin separador de miles en los años
-
-            selectInput("x_var", "Variable para el eje X:", choices = unique(df_bivariado$Variable), selected = "Cohesión horizontal")
-            selectInput("y_var", "Variable para el eje Y:", choices = unique(df_bivariado$Variable), selected = "Cohesión vertical")
-            
-            checkboxInput("show_flags", "Banderas en lugar de puntos.", TRUE)
-```
-
-```{r}
-uiOutput("descripcion_bivariado")
+# Checkbox para incluir género
+checkboxInput(
+  inputId = "include_gender",
+  label = "Desagregar por Género",
+  value = TRUE
+)
 ```
 
 ## Gráfico
 
 ```{r}
-plotlyOutput("plot", height = "800px")
+plotlyOutput("trend_plot", height = "600px")
 ```
 
 
 ```{r server}
 #| context: server
 
-# base longitudinal
+# ---- base longitudinal ----
 
 # Recrear base_long en el contexto del servidor para asegurar disponibilidad
 set.seed(123) # Para reproducibilidad
@@ -658,241 +634,7 @@ output$descripcion_variable <- renderUI({
   HTML(glue::glue("<p><strong>{variable_seleccionada()}:</strong> {texto}</p>"))
 })
 
-
-# ---- Base bivariados
-{
-# Load required library
-
-# Set seed for reproducibility
-set.seed(123)
-
-# Helper: draw Likert 1–5 with integer noise (±1)
-draw_likert_noise <- function(n, probs = NULL, p_shift = c(0.1, 0.6, 0.8)) {
-  base  <- sample(1:5, n, replace = TRUE, prob = probs)                 # base Likert
-  noise <- sample(c(-1, 0, 1), n, replace = TRUE, prob = p_shift)       # jitter
-  pmin(pmax(base + noise, 1), 5)                                        # clamp to 1–5
-}
-
-# Number of respondents
-n <- 1000
-
-# Create simulated dataset
-dfsim16 <- data.frame(
-  id = 1:n,
-  wave = 2016,
-  
-  # Indicators (Likert 1-5 with integer noise)
-  public_meetings = draw_likert_noise(n),
-  volunteering    = draw_likert_noise(n),
-  lend_money      = draw_likert_noise(n),
-  help_job        = draw_likert_noise(n),
-  social_trust    = draw_likert_noise(n),
-  social_altruism = draw_likert_noise(n),
-  firma_peticion  = draw_likert_noise(n),
-  asiste_marcha   = draw_likert_noise(n),
-  part_huelga     = draw_likert_noise(n),
-  voto_deber  = draw_likert_noise(n),
-  voto_influye  = draw_likert_noise(n),
-  voto_expresion  = draw_likert_noise(n),
-  interes_politica  = draw_likert_noise(n),
-  habla_politica  = draw_likert_noise(n),
-  informa_politica  = draw_likert_noise(n)
-)
-
-
-dfsim16 <- dfsim16 %>%
-  mutate(
-    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
-    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
-    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
-    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
-    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
-    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
-  )
-
-
-
-# Create simulated dataset
-dfsim17 <- data.frame(
-  id = 1:n,
-  wave = 2017,
-  
-  # Indicators (Likert 1-5 with integer noise)
-  public_meetings = draw_likert_noise(n),
-  volunteering    = draw_likert_noise(n),
-  lend_money      = draw_likert_noise(n),
-  help_job        = draw_likert_noise(n),
-  social_trust    = draw_likert_noise(n),
-  social_altruism = draw_likert_noise(n),
-  firma_peticion  = draw_likert_noise(n),
-  asiste_marcha   = draw_likert_noise(n),
-  part_huelga     = draw_likert_noise(n),
-  voto_deber  = draw_likert_noise(n),
-  voto_influye  = draw_likert_noise(n),
-  voto_expresion  = draw_likert_noise(n),
-  interes_politica  = draw_likert_noise(n),
-  habla_politica  = draw_likert_noise(n),
-  informa_politica  = draw_likert_noise(n)
-)
-
-
-dfsim17 <- dfsim17 %>%
-  mutate(
-    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
-    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
-    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
-    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
-    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
-    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
-  )
-
-
-# Create simulated dataset
-dfsim18 <- data.frame(
-  id = 1:n,
-  wave = 2018,
-  
-  # Indicators (Likert 1-5 with integer noise)
-  public_meetings = draw_likert_noise(n),
-  volunteering    = draw_likert_noise(n),
-  lend_money      = draw_likert_noise(n),
-  help_job        = draw_likert_noise(n),
-  social_trust    = draw_likert_noise(n),
-  social_altruism = draw_likert_noise(n),
-  firma_peticion  = draw_likert_noise(n),
-  asiste_marcha   = draw_likert_noise(n),
-  part_huelga     = draw_likert_noise(n),
-  voto_deber  = draw_likert_noise(n),
-  voto_influye  = draw_likert_noise(n),
-  voto_expresion  = draw_likert_noise(n),
-  interes_politica  = draw_likert_noise(n),
-  habla_politica  = draw_likert_noise(n),
-  informa_politica  = draw_likert_noise(n)
-)
-
-
-dfsim18 <- dfsim18 %>%
-  mutate(
-    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
-    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
-    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
-    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
-    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
-    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
-  )
-
-dfsim19 <- data.frame(
-  id = 1:n,
-  wave = 2019,
-  
-  # Indicators (Likert 1-5 with integer noise)
-  public_meetings = draw_likert_noise(n),
-  volunteering    = draw_likert_noise(n),
-  lend_money      = draw_likert_noise(n),
-  help_job        = draw_likert_noise(n),
-  social_trust    = draw_likert_noise(n),
-  social_altruism = draw_likert_noise(n),
-  firma_peticion  = draw_likert_noise(n),
-  asiste_marcha   = draw_likert_noise(n),
-  part_huelga     = draw_likert_noise(n),
-  voto_deber  = draw_likert_noise(n),
-  voto_influye  = draw_likert_noise(n),
-  voto_expresion  = draw_likert_noise(n),
-  interes_politica  = draw_likert_noise(n),
-  habla_politica  = draw_likert_noise(n),
-  informa_politica  = draw_likert_noise(n)
-)
-
-
-dfsim19 <- dfsim19 %>%
-  mutate(
-    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
-    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
-    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
-    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
-    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
-    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
-  )
-
-# Create simulated dataset
-dfsim22 <- data.frame(
-  id = 1:n,
-  wave = 2022,
-  
-   # Indicators (Likert 1-5 with integer noise)
-  public_meetings = draw_likert_noise(n),
-  volunteering    = draw_likert_noise(n),
-  lend_money      = draw_likert_noise(n),
-  help_job        = draw_likert_noise(n),
-  social_trust    = draw_likert_noise(n),
-  social_altruism = draw_likert_noise(n),
-  firma_peticion  = draw_likert_noise(n),
-  asiste_marcha   = draw_likert_noise(n),
-  part_huelga     = draw_likert_noise(n),
-  voto_deber  = draw_likert_noise(n),
-  voto_influye  = draw_likert_noise(n),
-  voto_expresion  = draw_likert_noise(n),
-  interes_politica  = draw_likert_noise(n),
-  habla_politica  = draw_likert_noise(n),
-  informa_politica  = draw_likert_noise(n)
-)
-
-
-dfsim22 <- dfsim22 %>%
-  mutate(
-    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
-    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
-    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
-    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
-    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
-    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
-  )
-
-
-dfsim <- bind_rows(dfsim16,dfsim17,dfsim18,dfsim19, dfsim22) %>% arrange(id)
-dim(dfsim)
-
-
-dfgrouped <- 
-dfsim %>% group_by(wave) %>% 
-  summarise(  # Indicators (Likert 1-5 with integer noise)
-    public_meetings = mean(public_meetings),
-    volunteering    = mean(volunteering   ),
-    lend_money      = mean(lend_money     ),
-    help_job        = mean(help_job       ),
-    social_trust    = mean(social_trust   ),
-    social_altruism = mean(social_altruism),
-    firma_peticion = mean(firma_perticion),
-    asiste_marcha = mean(asiste_marcha),
-    part_huelga = mean(part_huelga),
-    voto_deber = mean(voto_deber),
-    voto_influye = mean(voto_influye),
-    voto_expresion = mean(voto_expresion),
-    interes_politica = mean(interes_politica),
-    habla_politica = mean(habla_politica),
-    informa_politica = mean(informa_politica)
-    )
-
-df_long <- dfgrouped %>%
-  select(wave, social_trust, social_altruism, firma_peticion, asiste_marcha, part_huelga,
-         voto_deber, voto_influye, voto_expresion, interes_politica, habla_politica, informa_politica) %>%
-  pivot_longer(c(social_trust, social_altruism, firma_peticion, asiste_marcha, part_huelga,
-         voto_deber, voto_influye, voto_expresion, interes_politica, habla_politica, informa_politica),
-               names_to = "indicator", values_to = "mean_score") %>%
-  mutate(
-    wave = factor(wave),
-    indicator = factor(indicator,
-                       levels = c("social_trust","social_altruism", "firma_peticion", "asiste_marcha", "part_huelga", "voto_deber", "voto_influye", "voto_expresion", "interes_politica", "habla_politica", "informa_politica"),
-                       labels = c("Social Trust","Social Altruism", "Firmar petición", "Asistir a marcha",
-                                  "Participa en huelga", "Votar es un deber", "Mi voto influye", "Mi voto expresa mi opinión", "Interés en política", ""))
-  )
-
-df_long$subdim <- "Interpersonal Trust"
-df_long$dim <- "Social Networks"
-
-df_long <- df_long %>% select(wave,dim,subdim,indicator,mean_score)
-}
-
+# ---- Base ranking artificial  ----
 {
 # Load required library
 library(dplyr)
@@ -1026,6 +768,253 @@ df_long$dim <- "Social Networks"
 
 df_long <- df_long %>% select(wave,dim,subdim,indicator,mean_score)
 }
+
+
+# ---- Base bivariados artificial ----
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Helper: draw Likert 1–5 with integer noise (±1)
+draw_likert_noise <- function(n, probs = NULL, p_shift = c(0.1, 0.6, 0.8)) {
+  base  <- sample(1:5, n, replace = TRUE, prob = probs)                 # base Likert
+  noise <- sample(c(-1, 0, 1), n, replace = TRUE, prob = p_shift)       # jitter
+  pmin(pmax(base + noise, 1), 5)                                        # clamp to 1–5
+}
+
+# Number of respondents
+n <- 1000
+
+# Create simulated dataset
+dfsim16 <- data.frame(
+  id = 1:n,
+  wave = 2016,
+  
+  # Indicators (Likert 1-5 with integer noise)
+  public_meetings = draw_likert_noise(n),
+  volunteering    = draw_likert_noise(n),
+  lend_money      = draw_likert_noise(n),
+  help_job        = draw_likert_noise(n),
+  social_trust    = draw_likert_noise(n),
+  social_altruism = draw_likert_noise(n),
+  firma_peticion  = draw_likert_noise(n),
+  asiste_marcha   = draw_likert_noise(n),
+  part_huelga     = draw_likert_noise(n),
+  voto_deber  = draw_likert_noise(n),
+  voto_influye  = draw_likert_noise(n),
+  voto_expresion  = draw_likert_noise(n),
+  interes_politica  = draw_likert_noise(n),
+  habla_politica  = draw_likert_noise(n),
+  informa_politica  = draw_likert_noise(n)
+)
+
+dfsim16 <- dfsim16 %>%
+  mutate(
+    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
+    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
+    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
+    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
+    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
+    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
+  )
+
+# Create simulated dataset
+dfsim17 <- data.frame(
+  id = 1:n,
+  wave = 2017,
+  
+  # Indicators (Likert 1-5 with integer noise)
+  public_meetings = draw_likert_noise(n),
+  volunteering    = draw_likert_noise(n),
+  lend_money      = draw_likert_noise(n),
+  help_job        = draw_likert_noise(n),
+  social_trust    = draw_likert_noise(n),
+  social_altruism = draw_likert_noise(n),
+  firma_peticion  = draw_likert_noise(n),
+  asiste_marcha   = draw_likert_noise(n),
+  part_huelga     = draw_likert_noise(n),
+  voto_deber  = draw_likert_noise(n),
+  voto_influye  = draw_likert_noise(n),
+  voto_expresion  = draw_likert_noise(n),
+  interes_politica  = draw_likert_noise(n),
+  habla_politica  = draw_likert_noise(n),
+  informa_politica  = draw_likert_noise(n)
+)
+
+dfsim17 <- dfsim17 %>%
+  mutate(
+    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
+    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
+    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
+    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
+    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
+    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
+  )
+
+# Create simulated dataset
+dfsim18 <- data.frame(
+  id = 1:n,
+  wave = 2018,
+  
+  # Indicators (Likert 1-5 with integer noise)
+  public_meetings = draw_likert_noise(n),
+  volunteering    = draw_likert_noise(n),
+  lend_money      = draw_likert_noise(n),
+  help_job        = draw_likert_noise(n),
+  social_trust    = draw_likert_noise(n),
+  social_altruism = draw_likert_noise(n),
+  firma_peticion  = draw_likert_noise(n),
+  asiste_marcha   = draw_likert_noise(n),
+  part_huelga     = draw_likert_noise(n),
+  voto_deber  = draw_likert_noise(n),
+  voto_influye  = draw_likert_noise(n),
+  voto_expresion  = draw_likert_noise(n),
+  interes_politica  = draw_likert_noise(n),
+  habla_politica  = draw_likert_noise(n),
+  informa_politica  = draw_likert_noise(n)
+)
+
+dfsim18 <- dfsim18 %>%
+  mutate(
+    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
+    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
+    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
+    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
+    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
+    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
+  )
+
+dfsim19 <- data.frame(
+  id = 1:n,
+  wave = 2019,
+  
+  # Indicators (Likert 1-5 with integer noise)
+  public_meetings = draw_likert_noise(n),
+  volunteering    = draw_likert_noise(n),
+  lend_money      = draw_likert_noise(n),
+  help_job        = draw_likert_noise(n),
+  social_trust    = draw_likert_noise(n),
+  social_altruism = draw_likert_noise(n),
+  firma_peticion  = draw_likert_noise(n),
+  asiste_marcha   = draw_likert_noise(n),
+  part_huelga     = draw_likert_noise(n),
+  voto_deber  = draw_likert_noise(n),
+  voto_influye  = draw_likert_noise(n),
+  voto_expresion  = draw_likert_noise(n),
+  interes_politica  = draw_likert_noise(n),
+  habla_politica  = draw_likert_noise(n),
+  informa_politica  = draw_likert_noise(n)
+)
+
+dfsim19 <- dfsim19 %>%
+  mutate(
+    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
+    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
+    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
+    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
+    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
+    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
+  )
+
+# Create simulated dataset
+dfsim22 <- data.frame(
+  id = 1:n,
+  wave = 2022,
+  
+   # Indicators (Likert 1-5 with integer noise)
+  public_meetings = draw_likert_noise(n),
+  volunteering    = draw_likert_noise(n),
+  lend_money      = draw_likert_noise(n),
+  help_job        = draw_likert_noise(n),
+  social_trust    = draw_likert_noise(n),
+  social_altruism = draw_likert_noise(n),
+  firma_peticion  = draw_likert_noise(n),
+  asiste_marcha   = draw_likert_noise(n),
+  part_huelga     = draw_likert_noise(n),
+  voto_deber  = draw_likert_noise(n),
+  voto_influye  = draw_likert_noise(n),
+  voto_expresion  = draw_likert_noise(n),
+  interes_politica  = draw_likert_noise(n),
+  habla_politica  = draw_likert_noise(n),
+  informa_politica  = draw_likert_noise(n)
+)
+
+dfsim22 <- dfsim22 %>%
+  mutate(
+    prosocial_behavior     = rowMeans(select(., public_meetings, volunteering), na.rm = TRUE),
+    economic_help          = rowMeans(select(., lend_money, help_job), na.rm = TRUE),
+    interpersonal_trust    = rowMeans(select(., social_trust, social_altruism), na.rm = TRUE),
+    part_pol    = rowMeans(select(., firma_peticion, asiste_marcha, part_huelga), na.rm = TRUE),
+    autoeff_pol    = rowMeans(select(., voto_deber, voto_influye, voto_expresion), na.rm = TRUE),
+    interes_pol    = rowMeans(select(., interes_politica, habla_politica, informa_politica), na.rm = TRUE)
+  )
+
+dfsim <- bind_rows(dfsim16,dfsim17,dfsim18,dfsim19, dfsim22) %>% arrange(id)
+
+# Asignar género de forma aleatoria (0 = Hombre, 1 = Mujer)
+# Cada ID tiene el mismo género en todas las olas
+set.seed(456)
+gender_assignment <- data.frame(
+  id = 1:n,
+  genero = sample(c(0, 1), n, replace = TRUE)
+)
+
+dfsim <- dfsim %>%
+  left_join(gender_assignment, by = "id") %>%
+  mutate(genero = factor(genero, levels = c(0, 1), labels = c("Hombre", "Mujer")))
+
+dfgrouped <- 
+dfsim %>% group_by(wave, genero) %>% 
+  summarise(  # Indicators (Likert 1-5 with integer noise)
+    public_meetings = mean(public_meetings),
+    volunteering    = mean(volunteering   ),
+    lend_money      = mean(lend_money     ),
+    help_job        = mean(help_job       ),
+    social_trust    = mean(social_trust   ),
+    social_altruism = mean(social_altruism),
+    firma_peticion = mean(firma_peticion),
+    asiste_marcha = mean(asiste_marcha),
+    part_huelga = mean(part_huelga),
+    voto_deber = mean(voto_deber),
+    voto_influye = mean(voto_influye),
+    voto_expresion = mean(voto_expresion),
+    interes_politica = mean(interes_politica),
+    habla_politica = mean(habla_politica),
+    informa_politica = mean(informa_politica),
+    .groups = 'drop'
+    )
+
+df_long <- dfgrouped %>%
+  select(wave, genero, social_trust, social_altruism, firma_peticion, asiste_marcha, part_huelga,
+         voto_deber, voto_influye, voto_expresion, interes_politica, habla_politica, informa_politica) %>%
+  pivot_longer(c(social_trust, social_altruism, firma_peticion, asiste_marcha, part_huelga,
+         voto_deber, voto_influye, voto_expresion, interes_politica, habla_politica, informa_politica),
+               names_to = "indicator", values_to = "mean_score") %>%
+  mutate(
+    wave = factor(wave),
+    indicator = factor(indicator,
+                       levels = c("social_trust","social_altruism", "firma_peticion", "asiste_marcha", "part_huelga", "voto_deber", "voto_influye", "voto_expresion", "interes_politica", "habla_politica", "informa_politica"),
+                       labels = c("Social Trust","Social Altruism", "Firmar petición", "Asistir a marcha",
+                                  "Participa en huelga", "Votar es un deber", "Mi voto influye", "Mi voto expresa mi opinión", "Interés en política", "Habla de política", "Se informa de política"))
+  )
+
+# Asignar subdimensiones según el indicador
+df_long <- df_long %>%
+  mutate(subdim = case_when(
+    indicator %in% c("Social Trust", "Social Altruism") ~ "Interpersonal Trust",
+    indicator %in% c("Firmar petición", "Asistir a marcha", "Participa en huelga", 
+                     "Votar es un deber", "Mi voto influye", "Mi voto expresa mi opinión",
+                     "Interés en política", "Habla de política", "Se informa de política") ~ "Participación política",
+    TRUE ~ "Otra"  # Por si acaso hay indicadores no clasificados
+  ))
+
+df_long <- df_long %>%
+  mutate(dim = case_when(
+    subdim %in% c("Interpersonal Trust") ~ "Redes sociales",
+    subdim %in% c("Participación política", "Autoeficacia política", "Interés político") ~ "Participación y actitudes políticas"
+  ))
+
+df_long <- df_long %>% select(wave,dim,subdim,indicator,genero, mean_score)
 
 ## Longitudinal ----
 
@@ -1220,244 +1209,7 @@ output$descripcion_longitudinal <- renderUI({
               "</div>"))
 })
 
-
-## BIVARIADO ----
-
-noDataMessage <- reactiveVal(FALSE)
-
-observe({
-  x_var <- input$x_var
-  y_var <- input$y_var
-  time_point <- input$Ola_bi
-
-  temp_df <- df_bivariado %>% filter(Ola == time_point)
-
-  x_data <- temp_df %>% filter(Variable == x_var, .preserve = TRUE) %>% pull(Valor)
-  y_data <- temp_df %>% filter(Variable == y_var, .preserve = TRUE) %>% pull(Valor)
-
-  x_available <- nrow(temp_df %>% filter(Variable == x_var, .preserve = TRUE)) > 0 && any(!is.na(x_data))
-  y_available <- nrow(temp_df %>% filter(Variable == y_var, .preserve = TRUE)) > 0 && any(!is.na(y_data))
-
-  if (x_available && y_available) {
-    removeModal()
-    noDataMessage(FALSE)
-  } else {
-    showModal(modalDialog(
-      tags$div(tags$h4("Atención"), style = "display: inline-block;"),
-      tags$button(tags$i(class = "fa fa-times"), type = "button", class = "close", `data-dismiss` = "modal",
-                  `aria-label` = "Close", style = "margin-left: 15px;"),
-      "No hay datos disponibles para la variable en este año. Por favor, seleccione otro.",
-      easyClose = TRUE,
-      footer = NULL
-    ))
-    noDataMessage(TRUE)
-  }
-})
-
-# --- Función para obtener la URL de la bandera ---
-# En lugar de devolver un emoji, esta función devuelve la URL de una imagen de la bandera.
-get_flag_url <- function(country_name) {
-  # Mapeo de nombres de países a códigos ISO de 2 letras (en minúsculas)
-  country_codes <- list(
-    Argentina = "ar",
-    Belize = "bz",
-    Bolivia = "bo",
-    Brazil = "br",
-    Canada = "ca",
-    Chile = "cl",
-    Colombia = "co",
-    `Costa Rica` = "cr",
-    `Dominican Republic` = "do",
-    Ecuador = "ec",
-    `El Salvador` = "sv",
-    Guatemala = "gt",
-    Guyana = "gy",
-    Haiti = "ht",
-    Honduras = "hn",
-    Jamaica = "jm",
-    Mexico = "mx",
-    Nicaragua = "ni",
-    Panama = "pa",
-    Paraguay = "py",
-    Peru = "pe",
-    `Trinidad & Tobago` = "tt",
-    `United States` = "us",
-    Uruguay = "uy",
-    Venezuela = "ve"
-    # No incluimos "Promedio" ya que no tiene una bandera de país.
-  )
-  
-  code <- country_codes[[country_name]]
-  if (is.null(code)) {
-    return(NA) # Devolver NA si el país no se encuentra
-  }
-  
-  # Formatear la URL. w40 indica un ancho de 40px
-  return(paste0("https://flagcdn.com/w40/", code, ".png"))
-}
-
-# --- Renderizado del Gráfico en Shiny ---
-output$plot <- renderPlotly({
-  if (noDataMessage()) return(NULL)
-  
-  x_var <- input$x_var
-  y_var <- input$y_var
-  time_point <- input$Ola_bi
-  show_flags <- input$show_flags
-  
-  temp_df <- df_bivariado %>%
-    filter(Ola == time_point) %>%
-    pivot_wider(names_from = Variable, values_from = Valor) %>%
-    select(País, all_of(c(x_var, y_var))) %>%
-    drop_na()
-  
-  if (!all(c(x_var, y_var) %in% names(temp_df))) {
-    showNotification("Error: Variables seleccionadas no encontradas", type = "error")
-    return(NULL)
-  }
-  
-  temp_df <- temp_df %>%
-    rename(x_val = !!sym(x_var), y_val = !!sym(y_var))
-  
-  p <- plot_ly()
-  images_list <- list()
-  
-  # Dimensiones relativas para imágenes (solo si se usan)
-  x_range <- diff(range(temp_df$x_val, na.rm = TRUE))
-  y_range <- diff(range(temp_df$y_val, na.rm = TRUE))
-  sizex <- x_range * 0.05
-  sizey <- y_range * 0.08
-  
-  for (pais in unique(temp_df$País)) {
-  row <- temp_df[temp_df$País == pais, ]
-  if (nrow(row) == 0) next
-
-  # Hover personalizado
-  hover_text <- paste0(
-    "País: ", pais,
-    "<br>", x_var, ": ", sprintf("%.2f", row$x_val),
-    "<br>", y_var, ": ", sprintf("%.2f", row$y_val)
-  )
-
-  # Si se muestran banderas
-  if (show_flags) {
-    img_url <- get_flag_url(pais)
-
-    # Agregar imagen
-    images_list[[length(images_list) + 1]] <- list(
-      source = img_url,
-      x = row$x_val,
-      y = row$y_val,
-      sizex = sizex,
-      sizey = sizey,
-      xref = "x",
-      yref = "y",
-      xanchor = "center",
-      yanchor = "middle",
-      layer = "above"
-    )
-
-    # Agregar marcador invisible para hover y leyenda
-    p <- add_markers(p,
-      x = row$x_val,
-      y = row$y_val,
-      name = pais,
-      marker = list(opacity = 0),
-      text = hover_text,
-      hoverinfo = "text"
-    )
-
-  } else {
-    # Agregar punto con color automático y leyenda
-    p <- add_markers(p,
-      x = row$x_val,
-      y = row$y_val,
-      name = pais,
-      marker = list(size = 12),
-      text = hover_text,
-      hoverinfo = "text"
-    )
-  }
-}
-
-
-  # Línea LOESS
-  if (nrow(temp_df) >= 5) {
-    tryCatch({
-      fit_loess <- loess(y_val ~ x_val, data = temp_df)
-      x_seq <- seq(min(temp_df$x_val), max(temp_df$x_val), length.out = 100)
-      y_pred <- predict(fit_loess, newdata = data.frame(x_val = x_seq))
-      p <- add_lines(
-        p, x = x_seq, y = y_pred, name = "Tendencia",
-        line = list(color = "black", dash = "dash"), hoverinfo = "none"
-      )
-    }, error = function(e) {
-      message("Error al ajustar LOESS: ", e$message)
-    })
-  }
-  
-  # Layout final
-  p <- p %>% layout(
-    title = "Análisis bivariado para subdimensiones de cohesión social",
-    xaxis = list(title = x_var),
-    yaxis = list(title = y_var),
-    images = images_list,
-    showlegend = TRUE
-  )
-  
-  return(p)
-})
-
-output$descripcion_bivariado <- renderUI({
-  definiciones <- list(
-    "Cohesión general" = "Partimos de una definición mínima de cohesión social que incluye 'tanto a las interacciones verticales como horizontales entre los miembros de la sociedad, caracterizado por un conjunto de actitudes y normas que incluyen la confianza, el sentido de pertenencia y la voluntad de participar y ayudar, así como sus manifestaciones conductuales' (Chan et al., 2006, p. 290).",
-    "Cohesión horizontal" = "La dimensión horizontal está dirigida hacia la cohesión dentro de la sociedad civil. Incluye indicadores sobre seguridad pública y confianza interpersonal",
-    "Cohesión vertical" = "La dimensión vertical está dirigida hacia la cohesión entre los ciudadanos (o sociedad civil) y el Estado. Incluye indicadores sobre confianza en instituciones, actitudes hacia la democracia y justicia redistributiva.",
-    "Confianza Interpersonal" = "Es el nivel de confianza que las personas tienen en otras personas, es decir, las expectativas positivas que una persona tiene sobre las intenciones o comportamientos de otra.",
-    "Seguridad Pública" = "Incluye indicadores tanto objetivos como subjetivos de seguridad urbana.",
-    "Confianza en las Instituciones" = "El grado de confianza en entidades como el gobierno, policía o sistema judicial.",
-    "Actitudes a la Democracia" = "La valoración y apoyo que se le da al sistema democrático.",
-    "Justicia Redistributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad.",
-    "Seguridad Objetiva"= "Frecuencia en que las personas han sido víctimas de algún delito en el último año (LAPOP)",
-    "Seguridad Subjetiva"= "Percepción de seguridad en el barrio (LAPOP)", 
-    "Confianza en el Congreso"= "Nivel de confianza en el poder legislativo del país (LAPOP)",
-    "Confianza Partidos Políticos"= "Nivel de confianza en los partidos políticos del país (LAPOP)",
-    "Confianza Poder Judicial"= "Nivel de confianza en las cortes de justicia del país (LAPOP)",
-    "Apoyo Democracia" = "Acuerdo con que la democracia es la mejor forma de gobierno (LAPOP)",
-    "Satisfacción Democracia"= "Nivel de satisfacción con la forma en que funciona la democracia en el país (LAPOP)",
-    "Orgullo Nacional"= "Nivel se orgullo que siente una persona de pertenecer a su país (WVS)",
-    "Importancia Igualdad de Ingresos" = "Nivel de acuerdo con que el Estado debe tomar acciones para mejorar la distribución de ingresos en el país (LAPOP)",
-    "Importancia del Trabajo Duro" = "Importancia que se le otorga al trabajo duro para surgir en la vida (WVS)",
-    "Percepción de Corrupción" = "Percepción sobre el nivel de funcionarios públicos involucrado en actos de corrupación (LAPOP)",
-    "Interés en la Política" = "Frecuencia con que se habla de política con amigos o familiares (LAPOP)",
-    "Comportamiento Prosocial"= "Índice creado a partir de indicadores sobre acatamiento de normas sociales, como pagar impuestos o pagar en el pasaje en el trasporte público (WVS)",
-    "Desempleo" = "Porcentaje de la fuerza de trabajo que no se encuentra trabajando estando disponible para hacerlo (Banco Mundial)",
-    "Gender Inequality Index"= "Mide las desigualdades de género a nvel nacional en en dimensiones de salud reproductiva, participación política y participación labora. Valores más cercanos a 1 indican mayor desigualdad (PNUD)",
-    "Gini Index" = "Mide la desigualdad en la distribución de los ingresos. 0 representa equidad perfecta, mientras 100 implica desigualdad perfecta (Banco Mundial)",
-    "Homicidios intencionales" = "Número de homicidios intencionales por cada 100.000 habitantes (Banco Mundial)",
-    "PIB per cápita (nominal)" = "Es el producto interno bruto divido por la población a mitad del año. Se encuentra expresado en dólares estadounidenses actuales (Banco Mundial)"
-    
-    
-  )
-  
-   x_var <- input$x_var
-  y_var <- input$y_var
-
-  # Busca las descripciones, si existen
-  x_desc <- definiciones[[x_var]]
-  y_desc <- definiciones[[y_var]]
-
-  # Texto alternativo si no hay descripción
-  if (is.null(x_desc)) x_desc <- "Descripción no disponible para esta variable."
-  if (is.null(y_desc)) y_desc <- "Descripción no disponible para esta variable."
-
-  HTML(glue::glue("
-    <p><strong>{x_var}:</strong> {x_desc}</p>
-    <p><strong>{y_var}:</strong> {y_desc}</p>
-  "))
-})
-
-## Gráfico de barras ----
+## Ranking ----
 
 output$bar_plot <- renderPlotly({
   req(input$subdim_ranking)
@@ -1522,42 +1274,118 @@ output$descripcion_barras <- renderUI({
   HTML(glue::glue("<p><strong>{variable_seleccionada()}:</strong> {texto}</p>"))
 })
 
+## BIVARIADO ----
+
+# ---- Observers y outputs ----
+
+observe({
+  subdim_choices <- unique(df_long$subdim)
+  updateSelectInput(session, "subdim_select",
+                    choices = subdim_choices,
+                    selected = subdim_choices[1])
+})
+
+# Actualizar indicadores según la subdimensión seleccionada
+observe({
+  req(input$subdim_select)
+  
+  indicators <- df_long %>%
+    filter(subdim == input$subdim_select) %>%
+    pull(indicator) %>%
+    unique() %>%
+    as.character()
+  
+  updateSelectInput(session, "indicator_select",
+                    choices = indicators,
+                    selected = indicators[1])
+})
+
+# Datos filtrados reactivos
+filtered_data <- reactive({
+  req(input$indicator_select)
+  
+  df_long %>%
+    filter(indicator == input$indicator_select)
+})
+
+# Generar gráfico
+output$trend_plot <- renderPlotly({
+  req(filtered_data())
+  
+  data_plot <- filtered_data()
+  
+  # Si NO se desagrega por género, calcular promedio general
+  if (!input$include_gender) {
+    data_plot <- data_plot %>%
+      group_by(wave, indicator, subdim) %>%
+      summarise(mean_score = mean(mean_score, na.rm = TRUE),
+                .groups = 'drop') %>%
+      mutate(genero = "Total")
+  }
+  
+  # Crear el gráfico
+  if (input$include_gender) {
+    # Gráfico con género
+    fig <- plot_ly(
+      data = data_plot,
+      x = ~wave,
+      y = ~mean_score,
+      color = ~genero,
+      colors = c("blue", "red"),
+      type = 'scatter',
+      mode = 'lines+markers',
+      marker = list(size = 10),
+      line = list(width = 2)
+    ) %>%
+      layout(
+        title = paste0(input$indicator_select, " por género y año"),
+        xaxis = list(
+          title = "Año",
+          tickfont = list(size = 12)
+        ),
+        yaxis = list(
+          title = "Puntuación media (1-5)",
+          range = c(1, 5),
+          dtick = 0.5,
+          tickfont = list(size = 12)
+        ),
+        legend = list(
+          title = list(text = "Género"),
+          font = list(size = 12)
+        ),
+        hovermode = "x unified"
+      )
+  } else {
+    # Gráfico sin género (total)
+    fig <- plot_ly(
+      data = data_plot,
+      x = ~wave,
+      y = ~mean_score,
+      type = 'scatter',
+      mode = 'lines+markers',
+      marker = list(size = 10, color = 'purple'),
+      line = list(width = 2, color = 'purple'),
+      name = 'Total'
+    ) %>%
+      layout(
+        title = paste0(input$indicator_select, " por año"),
+        xaxis = list(
+          title = "Año",
+          tickfont = list(size = 12)
+        ),
+        yaxis = list(
+          title = "Puntuación media (1-5)",
+          range = c(1, 5),
+          dtick = 0.5,
+          tickfont = list(size = 12)
+        ),
+        showlegend = FALSE,
+        hovermode = "x unified"
+      )
+  }
+  
+  fig
+})
+
 ```
 
-
-```{r}
-# Cargar librerías
-library(plotly)
-library(dplyr)
-
-set.seed(123) # reproducibilidad
-
-# Simulación de la base
-datos <- expand.grid(
-  ola = 1:5,
-  genero = c("Hombres", "Mujeres")
-) %>%
-  mutate(
-    percepcion_seguridad = round(runif(n(), 2.5, 4.5), 2) # valores simulados entre 2.5 y 4.5
-  )
-# Gráfico interactivo
-fig <- plot_ly(
-  data = datos,
-  x = ~ola,
-  y = ~percepcion_seguridad,
-  color = ~genero,
-  colors = c("blue", "red"),
-  type = 'scatter',
-  mode = 'lines+markers',
-  marker = list(size = 10)
-) %>%
-  layout(
-    title = "Percepción de seguridad por género y año",
-    xaxis = list(title = "Ola (Años)", tickvals = 1:5),
-    yaxis = list(title = "Percepción de seguridad (1-5)", range = c(1,5), dtick = 1),
-    legend = list(title = list(text = "Género"))
-  )
-
-fig
-
-```
