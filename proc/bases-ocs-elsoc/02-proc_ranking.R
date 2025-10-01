@@ -988,22 +988,149 @@ ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = pro
 
 # Justicia Distributiva por Ola
 
-# 2016
+var_just_dist <- c("justicia_pensiones", "justicia_educacion", "justicia_salud", "just_distrib")
+
+# ========== GRÁFICO OLA 2016 ==========
+
+datos_2016 <- db_promedios_ola %>%
+  filter(ola == "2016") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
+
+ggplot(datos_2016, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2016",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
 
 
-# 2017
+# ========== GRÁFICO OLA 2017 ==========
+
+datos_2017 <- db_promedios_ola %>%
+  filter(ola == "2017") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
+
+ggplot(datos_2017, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2017",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
+
+# ========== GRÁFICO OLA 2018 ==========
+
+datos_2018 <- db_promedios_ola %>%
+  filter(ola == "2018") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
+
+ggplot(datos_2018, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2018",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
 
 
-# 2018
+# ========== GRÁFICO OLA 2019 ==========
+
+datos_2019 <- db_promedios_ola %>%
+  filter(ola == "2016") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
+
+ggplot(datos_2016, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2016",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
 
 
-# 2019
+# ========== GRÁFICO OLA 2021 ==========
 
+# No se presentan datos de Justicia Distributiva para el 2021
 
-# 2021
+# ========== GRÁFICO OLA 2022 ==========
 
+datos_2022 <- db_promedios_ola %>%
+  filter(ola == "2022") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
 
-# 2022
+ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2022",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
 
+# ========== GRÁFICO OLA 2022 ==========
 
-# 2023
+datos_2022 <- db_promedios_ola %>%
+  filter(ola == "2022") %>%
+  select(all_of(var_just_dist)) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "promedio")
+
+ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+  geom_col(show.legend = TRUE) +
+  coord_flip() +
+  scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
+  labs(
+    title = "Justicia Distributiva - Ola 2022",
+    x = NULL,
+    y = "Promedio",
+    fill = "Promedio"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text = element_text(size = 10)
+  )
