@@ -1064,16 +1064,16 @@ ggplot(datos_2018, aes(x = reorder(variable, promedio), y = promedio, fill = pro
 # ========== GRÁFICO OLA 2019 ==========
 
 datos_2019 <- db_promedios_ola %>%
-  filter(ola == "2016") %>%
+  filter(ola == "2019") %>%
   select(all_of(var_just_dist)) %>%
   pivot_longer(everything(), names_to = "variable", values_to = "promedio")
 
-ggplot(datos_2016, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+ggplot(datos_2019, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
   geom_col(show.legend = TRUE) +
   coord_flip() +
   scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
   labs(
-    title = "Justicia Distributiva - Ola 2016",
+    title = "Justicia Distributiva - Ola 2019",
     x = NULL,
     y = "Promedio",
     fill = "Promedio"
@@ -1112,19 +1112,19 @@ ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = pro
     axis.text = element_text(size = 10)
   )
 
-# ========== GRÁFICO OLA 2022 ==========
+# ========== GRÁFICO OLA 2023 ==========
 
-datos_2022 <- db_promedios_ola %>%
-  filter(ola == "2022") %>%
+datos_2023 <- db_promedios_ola %>%
+  filter(ola == "2023") %>%
   select(all_of(var_just_dist)) %>%
   pivot_longer(everything(), names_to = "variable", values_to = "promedio")
 
-ggplot(datos_2022, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
+ggplot(datos_2023, aes(x = reorder(variable, promedio), y = promedio, fill = promedio)) +
   geom_col(show.legend = TRUE) +
   coord_flip() +
   scale_fill_gradient(low = "#FEE5D9", high = "#A50F15") +
   labs(
-    title = "Justicia Distributiva - Ola 2022",
+    title = "Justicia Distributiva - Ola 2023",
     x = NULL,
     y = "Promedio",
     fill = "Promedio"
