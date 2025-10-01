@@ -5,7 +5,7 @@
 # Responsible: René Canales
 
 # Executive Summary: This script contains the code to data preparation for analysis of cohesion in VIS-ELSOC
-# Date: Sep 23, 2025
+# Date: Sep 30, 2025
 
 # 1. Packages  -----------------------------------------------------
 if (! require("pacman")) install.packages("pacman")
@@ -561,10 +561,7 @@ db_promedios_ola <- db %>%
   group_by(ola) %>%
   summarise(across(where(is.numeric), 
                    ~mean(.x, na.rm = TRUE),
-                   .names = "{.col}")) %>%
-  # Eliminar columnas que tienen NA en sus promedios
-  select(where(~!any(is.na(.))))
-
+                   .names = "{.col}"))
 # Ver resultado
 head(db_promedios_ola)
 dim(db_promedios_ola)
@@ -587,14 +584,12 @@ db_promedios_ola_muestra <- db %>%
   summarise(across(where(is.numeric), 
                    ~mean(.x, na.rm = TRUE),
                    .names = "{.col}"),
-            .groups = "drop") %>%
-  # Eliminar columnas que tienen NA en sus promedios
-  select(where(~!any(is.na(.))))
+            .groups = "drop")
 
 # Ver resultado
 head(db_promedios_ola_muestra)
 dim(db_promedios_ola_muestra)
 
 # Guardar
-save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola_muestra.RData"))
-save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
+save(db_promedios_ola_muestra, file = here ("data/bases-vis-elsoc/db_promedios_ola_muestra.RData"))
+
