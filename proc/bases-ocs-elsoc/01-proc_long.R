@@ -51,6 +51,9 @@ db <- elsoc_long_2016_2023 %>%
          ideologia =  c15,
          religion = c12_02,
          estado_civil =  m36,
+         nhogar1,
+         m46_nhogar,
+         m54, m30, m30b, m29,
          seguridad_sat = t06_01, 
          seguridad_perc = t10, 
          peleas_calle = t09_01,
@@ -762,7 +765,7 @@ psych::describeBy(db$coh_gral, group = db$ola)
 # Label Variables
 
 # 1. Vector
-variables_recode <- colnames(db[,14:73])
+variables_recode <- colnames(db[,18:79])
 
 # 2. Definir las nuevas etiquetas
 nuevas_etiquetas <- c(
@@ -824,7 +827,13 @@ db_promedios_ola <- db %>%
             sexo, 
             ideologia, 
             religion, 
-            estado_civil)) %>%  # Excluir variables
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>%  # Excluir variables
   group_by(ola) %>%
   summarise(across(where(is.numeric), 
                    ~mean(.x, na.rm = TRUE),
@@ -856,7 +865,13 @@ db_promedios_ola_muestra <- db %>%
             sexo, 
             ideologia, 
             religion, 
-            estado_civil)) %>% 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
   group_by(ola, muestra) %>%
   summarise(across(where(is.numeric), 
                    ~mean(.x, na.rm = TRUE),
@@ -892,10 +907,10 @@ db_categ <- db %>%
     .x >= 3 ~ "Alto",
     .x < 3  ~ "Bajo"
   ))) %>% 
-  select(1:13, all_of(todas_las_variables))
+  select(1:19, all_of(todas_las_variables))
 
 db_categ <- db_categ %>% 
-  mutate_at(.vars = c(14:36), .funs = ~ as_factor(.))
+  mutate_at(.vars = todas_las_variables, .funs = ~ as_factor(.))
 
 # 3. (Opcional) Revisa el resultado en una de las variables
 frq(db_categ$seguridad_sub)
@@ -919,7 +934,7 @@ dim(db_categ)
 # ==========================================
 
 db_categ_ola <- db_categ %>%
-  select(-c(idencuesta,
+  select(-c(idencuesta, 
             muestra, 
             tipo_atricion, 
             ponderador_long_total, 
@@ -930,7 +945,13 @@ db_categ_ola <- db_categ %>%
             sexo, 
             ideologia, 
             religion, 
-            estado_civil)) %>% 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
   pivot_longer(
     cols = -1,
     names_to = "variable",
@@ -965,7 +986,7 @@ save(db_categ_ola, file = here ("data/bases-vis-elsoc/db_categ_ola.RData"))
 # ==========================================
 
 db_categ_ola_muestra <- db_categ %>%
-  select(-c(idencuesta,
+  select(-c(idencuesta, 
             tipo_atricion, 
             ponderador_long_total, 
             segmento,
@@ -975,7 +996,13 @@ db_categ_ola_muestra <- db_categ %>%
             sexo, 
             ideologia, 
             religion, 
-            estado_civil)) %>% 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
   pivot_longer(
     cols = -c(1:2),
     names_to = "variable",
