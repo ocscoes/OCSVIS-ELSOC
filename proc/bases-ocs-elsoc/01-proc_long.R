@@ -126,6 +126,17 @@ frq(db$muestra)
 
 #-----Redes-----
 
+# Opción 3: Más eficiente si quieres transformar todas a la vez
+variables_a_transformar <- c("confianza_gen", "altruismo_gen", "reunion_pub", 
+                             "voluntariado", "prestar_dinero", "ayuda_trabajo")
+
+db <- db %>%
+  mutate(across(all_of(variables_a_transformar), 
+                ~1 + (. - 1) * 2))
+
+# Verificar el resultado
+summary(db[, variables_a_transformar])  
+
 # comportamiento_prosocial
 
 db %>% 
