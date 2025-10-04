@@ -182,8 +182,9 @@ db$m30_rec <-
 #Impute midpoint of income ranges (2021)
 db$m30b_rec <-
   as.numeric(car::recode(db$m30b,
-                         "1=125000;2=300000;3=400000;4=575000;5=70000;NA=NA;c(-888,-999)=NA"))
+                         "1=125000;2=300000;3=400000;4=575000;5=700000;NA=NA;c(-888,-999)=NA"))
 
+sjmisc::frq(db$m30_rec)
 sjmisc::frq(db$m30b_rec)
 
 #Recode DK/DA of Income to NA
@@ -204,22 +205,42 @@ db$m29_imp <-
 summary(db$m29_imp)
 
 # deflate at each year's prices
-db$deflactor <-
-  with(db, case_when(
-    ola == 2016 ~ 113.88 / 123.82,
-    ola == 2017 ~ 116.46 / 123.82,
-    ola == 2018 ~ 119.45 / 123.82,
-    ola == 2019 ~ 123.82 / 123.82
-  ))
+
+url <- "https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_PRECIOS/MN_CAP_PRECIOS/IPC_EMP_2023/638415285164039007?cbFechaInicio=2016&cbFechaTermino=2025&cbFrecuencia=MONTHLY&cbCalculo=NONE&cbFechaBase="
+
+ipc <- url %>%
+  read_html() %>%
+  html_node("table") %>%
+  html_table() %>% 
+  rename_with(., ~ tolower(gsub(".", "_", .x, fixed = TRUE))) %>% 
+  filter(serie == "Índice IPC General") %>% 
+  mutate(
+    across(
+      .cols = c(everything(), -serie),
+      .fns = ~ as.numeric(str_replace(., ",", "."))
+    )) %>% 
+  select(-sel_) %>% 
+  pivot_longer(., cols = -serie,
+               names_to = "ano_mes",
+               values_to = "ipc") %>% 
+  tidyr::separate(col = "ano_mes", into = c("mes", "ano"))
+
+ipc <- ipc %>% 
+  filter(mes == "dic") %>% 
+  select(ano, ipc)
+
+db <- left_join(db, ipc, by = c("ola" = "ano"))
+
+frq(db$ipc)
 
 # Reshape long to wide
 db_wide <- db %>% 
   tidyr::pivot_wider(id_cols = c("idencuesta","muestra"),
                      names_from = "ola",
-                     values_from = names(select(db, tipo_atricion:deflactor))
+                     values_from = names(select(db, tipo_atricion:ipc))
   )
 
-db_wide$m54_6 <- db_wide$m54_7
+db_wide$m54_2022 <- db_wide$m54_2023
 
 # reshape from long to wide
 db_long <- db_wide %>%
@@ -229,7 +250,7 @@ db_long <- db_wide %>%
     # Toma TODO lo que va antes del último "_" como nombre de variable,
     # y lo que va después como la ola (1..7)
     names_pattern = "^(.*)_(\\d+)$",
-    values_drop_na = FALSE
+    values_drop_na = T
   ) %>%
   mutate(ola = as.integer(ola))
 
@@ -255,14 +276,14 @@ db_long$ing_pc <-
 
 db_long$ing_pc <-
   sjlabelled::set_label(x = db_long$ing_pc,
-                        label = "Household income per capita")  
+                        label = "Ingreso por hogar per cápita")  
 
 sjmisc::descr(db_long$ing_pc)
 
 # Compute income quintiles
 db_long <- db_long %>% 
   group_by(ola) %>% 
-  mutate(quintil = ntile(-desc(ing_pc), 5)) %>% 
+  mutate(quintil = ntile(ing_pc, 5)) %>% 
   ungroup()
 
 db_long$quintil <- 
@@ -275,7 +296,7 @@ db_long$quintil <-
 
 db_long$quintil <- 
   sjlabelled::set_label(x = db_long$quintil,
-                        label = "Household income quintile per capita")  
+                        label = "Quintil de ingresos por hogar per cápita")  
 
 sjmisc::frq(db_long$quintil)
 
@@ -288,13 +309,27 @@ db_long$quintil1<-
 
 db_long$quintil1 <- 
   sjlabelled::set_label(x = db_long$quintil1,
-                        label = "Household income quintile per capita (NA)") 
+                        label = "Quintil de ingresos por hogar per cápita (NA)") 
 sjmisc::frq(db_long$quintil1)
 
-frq(db_long$ola)
+frq(db_long$ola) #ok
 
+# 4. BBDD final and save -------------------------------------------------
 
-# 4. Save -------------------------------------------------
+db_long <- db_long %>% 
+  select(-c(nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m30_rec,
+            m30b_rec,
+            m29,
+            m29_rec,
+            m29_imp,
+            ipc,
+            n_hogar,
+            n_hogar_r))
 
 # db_long promedios
 
@@ -327,3 +362,337 @@ db_long_categ <- db_long_categ %>%
 frq(db_long_categ$seguridad_sub)
 
 save(db_long_categ, file = here ("data/bases-vis-elsoc/db_long_bivariados_categ.RData"))
+
+# 5. Bivariate BBDD -------------------------------------------------------
+
+## By dimensions and subdimensions mean
+
+variables <- c(
+  "seguridad_sub", "seguridad_obj", "seguridad_pub",
+  "sentido_pertenencia", "satisfaccion_barrio", "vinculos_territ",
+  "comportamiento_prosocial", "ayuda_economica", "confianza_inter", "redes_sociales",
+  "conf_inst_pol",
+  "pp_politica", "auto_efic", "int_pol", "prac_acti_pol",
+  "pref_autor",
+  "justicia_pensiones", "justicia_educacion", "justicia_salud", "just_distrib", 
+  "coh_horiz", "coh_vert", "coh_gral"
+)
+
+# 5.1 Sexo
+
+sexo_mean <- db_long %>% 
+  group_by(ola, sexo) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+    ) %>% 
+  filter(!is.na(sexo))
+  
+sexo_mean 
+
+# 5.2 Edad
+
+edad_mean <- db_long %>% 
+  group_by(ola, edad_t) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(edad_t))
+
+edad_mean 
+
+# 5.3 Educ mean
+
+cine_mean <- db_long %>% 
+  group_by(ola, cine) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(cine))
+
+cine_mean 
+
+educ_dic_mean <- db_long %>% 
+  group_by(ola, educ_dic) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(educ_dic))
+
+educ_dic_mean 
+
+# 5.4 Ingresos
+
+quintil_mean <- db_long %>% 
+  group_by(ola, quintil) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(quintil))
+
+quintil_mean 
+
+quintilna_mean <- db_long %>% 
+  group_by(ola, quintil1) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(quintil1))
+
+quintilna_mean
+
+# 5.5 Ideologia
+
+ideologia_mean <- db_long %>% 
+  group_by(ola, ideologia) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(ideologia))
+
+ideologia_mean 
+
+# 5.6 Religion
+
+religion_mean <- db_long %>% 
+  group_by(ola, religion) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(religion))
+
+religion_mean 
+
+# 5.7 Estado civil
+
+estcivil_mean <- db_long %>% 
+  group_by(ola, estado_civil) %>% 
+  summarise(
+    across(
+      .cols = all_of(variables),
+      .fns = ~ mean(.x, na.rm = TRUE),
+      .names = "{.col}")
+  ) %>% 
+  filter(!is.na(estado_civil))
+
+estcivil_mean 
+
+## By dimensions and subdimensions categorical
+
+# 5.8 Sexo categ
+
+sexo_categ <- db_long_categ %>% 
+  select(ola, sexo, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, sexo, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, sexo, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(sexo))
+
+sexo_categ
+
+
+# 5.9 Edad categ
+
+edad_categ <- db_long_categ %>% 
+  select(ola, edad_t, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, edad_t, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, edad_t, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(edad_t))
+
+
+edad_categ
+
+
+# 5.9 Educ categ
+
+cine_categ <- db_long_categ %>% 
+  select(ola, cine, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, cine, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, cine, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(cine))
+
+
+educ_dic_categ <- db_long_categ %>% 
+  select(ola, educ_dic, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, educ_dic, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, educ_dic, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(educ_dic))
+
+
+cine_categ
+educ_dic_categ
+
+
+# 5.10 Ingresos categ
+
+quintil_categ <- db_long_categ %>% 
+  select(ola, quintil, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, quintil, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, quintil, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(quintil))
+
+
+quintilna_categ <- db_long_categ %>% 
+  select(ola, quintil1, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, quintil1, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, quintil1, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(quintil1))
+
+
+quintil_categ
+quintilna_categ
+
+# 5.11 Ideologia categ
+
+ideologia_categ <- db_long_categ %>% 
+  select(ola, ideologia, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, ideologia, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, ideologia, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(ideologia))
+
+ideologia_categ
+
+# 5.12 Religion categ
+
+religion_categ <- db_long_categ %>% 
+  select(ola, religion, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, religion, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, religion, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(religion))
+
+religion_categ
+
+# 5.13 Estado civil categ
+
+estcivil_categ <- db_long_categ %>% 
+  select(ola, estado_civil, all_of(variables)) %>% 
+  pivot_longer(cols = all_of(variables),
+               names_to = "variable", values_to = "categoria") %>% 
+  group_by(ola, estado_civil, variable, categoria) %>%
+  summarise(n = n(), .groups = "drop_last") %>% 
+  filter(!is.na(categoria)) %>% 
+  mutate(prop = n / sum(n)) %>% 
+  ungroup() %>% 
+  pivot_wider(id_cols = c(ola, estado_civil, categoria),
+              names_from = variable,
+              values_from = c(n, prop)) %>% 
+  filter(!is.na(estado_civil))
+
+estcivil_categ
+
+
+# 6. Save and export ------------------------------------------------------
+
+save(
+  sexo_mean,
+  edad_mean,
+  cine_mean,
+  educ_dic_mean,
+  quintil_mean,
+  quintilna_mean,
+  ideologia_mean,
+  religion_mean,
+  estcivil_mean,
+  file = here("data/bases-vis-elsoc/bivariados_long_promedios.RData"))
+
+
+save(
+  sexo_categ,
+  edad_categ,
+  cine_categ,
+  educ_dic_categ,
+  quintil_categ,
+  quintilna_categ,
+  ideologia_categ,
+  religion_categ,
+  estcivil_categ,
+  file = here("data/bases-vis-elsoc/bivariados_long_categoricos.RData"))
+
+
+
