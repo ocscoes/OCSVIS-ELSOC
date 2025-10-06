@@ -47,6 +47,7 @@ library(sjlabelled)
 library(V8)
 # library(Cairo)
 library(shinythemes)
+library(htmltools)
 options(shiny.usecairo = TRUE)
 
 shinyWidgets:::html_dependency_picker_bs(
@@ -220,17 +221,67 @@ Más información sobre las fuentes de datos, la selección de indicadores y la 
 #             selected = UP_LEVEL_OPTION_VALUE) # Por defecto, la opción de "subir de nivel"
 
 
-selectizeInput(
-  "area", "Área:", choices = NULL, multiple = FALSE,
-  options = list(placeholder = "Selecciona un área...")
+tagList(
+  fluidRow(
+    column(
+      6,
+      selectizeInput(
+        "subdims_from_area_v",
+        "Subdimensiones verticales:",
+        choices = NULL,
+        multiple = TRUE,
+        options = list(
+          placeholder = "Elige hasta 4 subdimensiones (Vertical)...",
+          maxItems = 4,
+          plugins = list("remove_button"),
+          onInitialize = I("
+            function() {
+              var self = this;
+              // Delegado sobre el contenedor de ESTE selectize
+              this.$control.on('mousedown', '.item', function(e){
+                var value = $(this).attr('data-value');
+                if (!value) return;
+                self.removeItem(value, true);  // true = silencioso, sin flicker
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+              });
+            }
+          ")
+        )
+      )
+    ),
+    column(
+      6,
+      selectizeInput(
+        "subdims_from_area_h",
+        "Subdimensiones horizontales:",
+        choices = NULL,
+        multiple = TRUE,
+        options = list(
+          placeholder = "Elige hasta 4 subdimensiones (Horizontal)...",
+          maxItems = 4,
+          plugins = list("remove_button"),
+          onInitialize = I("
+            function() {
+              var self = this;
+              this.$control.on('mousedown', '.item', function(e){
+                var value = $(this).attr('data-value');
+                if (!value) return;
+                self.removeItem(value, true);
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+              });
+            }
+          ")
+        )
+      )
+    )
+  )
 )
 
-selectizeInput(
-  "subdimension", "Subdimensión:", 
-  choices = NULL, 
-  multiple = TRUE,
-  options = list(placeholder = "Elige hasta 4 subdimensiones...", maxItems = 4)
-)
+
 ```
 
 
@@ -570,111 +621,126 @@ df_long<-
 df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue_sdim)
 
-# Longitudinal (Author: Julio)-----------------------------------------------------
+# Longitudinal (Author: Tomás)-----------------------------------------------------
 
 # 3) Plot: SOLO subdimensiones (líneas por subdimensión) usando 'Ola'
 
-# Paleta fija posicional (1º..4º)
-my_colors <- c("#1f77b4", "#2ca02c", "purple","orange")
+# Paleta fija posicional (1º..4º considerando ambos selectores)
+my_colors <- c("#1f77b4", "#2ca02c", "purple", "orange")
 no_real_choice <- function(x) is.null(x) || length(x) == 0
 
-# Carga inicial de Áreas (sin selección) y limpiar subdimensiones
-observe({
-  areas <- df_long %>%
-    pull(Areas) %>%
-    unique() %>%
-    stats::na.omit() %>%
-    as.character() %>%
-    sort()
-
-  updateSelectizeInput(session, "area",
-    choices  = areas,
-    selected = NULL,
-    server   = TRUE
-  )
-  updateSelectizeInput(session, "subdimension",
-    choices = character(0), selected = NULL, server = TRUE
-  )
-})
-
-# Helper: construir choices agrupados por Dimensión (solo UI)
-# Estructura: list("Dimensión A" = c("Sub1","Sub2"), "Dimensión B" = c("Sub3",...))
+# Optgroups: lista "Dimensión" = c(subdims,...)
 make_grouped_choices <- function(df) {
   df %>%
     distinct(Dimension, Subdimension) %>%
-    mutate(
-      Dimension    = as.character(Dimension),
-      Subdimension = as.character(Subdimension)
-    ) %>%
+    filter(!is.na(Dimension), !is.na(Subdimension)) %>%
     arrange(Dimension, Subdimension) %>%
-    split(.$Subdimension, .$Dimension)
+    { split(.$Subdimension, .$Dimension) }
 }
 
-# Al cambiar Área -> cargar subdimensiones agrupadas por Dimensión (optgroups en UI)
-observeEvent(input$area, {
-  updateSelectizeInput(session, "subdimension",
-    choices = character(0), selected = NULL, server = TRUE
-  )
+# Paleta global por orden combinado (vertical + horizontal)
+build_color_map <- function(sel_v, sel_h) {
+  sel_v <- if (is.null(sel_v)) character(0) else sel_v
+  sel_h <- if (is.null(sel_h)) character(0) else sel_h
+  sel_all <- c(sel_v, sel_h)
+  if (length(sel_all) == 0) return(setNames(character(0), character(0)))  # <-- fix
 
-  req(input$area)
-  grouped_choices <- df_long %>%
-  dplyr::filter(Areas == input$area) %>%
-  dplyr::select(Dimension, Subdimension) %>%
-  dplyr::distinct() %>%
-  dplyr::filter(!is.na(Dimension), !is.na(Subdimension)) %>%
-  dplyr::mutate(
-    Dimension    = as.character(Dimension),
-    Subdimension = as.character(Subdimension)
-  ) %>%
-  dplyr::arrange(Dimension, Subdimension) %>%
-  { split(.$Subdimension, .$Dimension) }
+  sel_all <- sel_all[!duplicated(sel_all)]
+  sel_all <- sel_all[seq_len(min(length(sel_all), length(my_colors)))]
+  setNames(my_colors[seq_along(sel_all)], sel_all)
+}
 
-  updateSelectizeInput(session, "subdimension",
-    choices  = grouped_choices,   # <- grupos (Dimensión) con elementos (Subdimensiones)
-    selected = NULL,
-    server   = TRUE
-  )
-}, ignoreInit = TRUE)
-
-# Plot: SOLO subdimensiones (traces en orden de selección con color posicional)
-output$subdims_plot <- renderPlotly({
-  if (is.null(input$area) || no_real_choice(input$subdimension)) return(NULL)
-
-  # Respetar máximo 4 colores
-  sel <- input$subdimension
-  if (length(sel) > length(my_colors)) sel <- sel[seq_len(length(my_colors))]
+# Añade trazas de un área usando color_map global y estilo por área
+add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_map) {
+  if (no_real_choice(selected_subdims)) return(p)
+  keep <- intersect(selected_subdims, names(color_map))
+  if (length(keep) == 0) return(p)
 
   dplot <- df_long %>%
-    filter(Areas == input$area, Subdimension %in% sel) %>%
+    filter(Areas == area_label, Subdimension %in% keep) %>%
     group_by(Ola, Subdimension) %>%
     summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop")
-  if (nrow(dplot) == 0) return(NULL)
 
-  # Construcción manual de traces en el ORDEN DE SELECCIÓN para fijar colores 1..4
-  p <- plotly::plot_ly()
-  for (i in seq_along(sel)) {
-    df_i <- dplot %>% filter(Subdimension == sel[i])
+  if (nrow(dplot) == 0) return(p)
+
+  for (sd in keep) {
+    df_i <- filter(dplot, Subdimension == sd)
     if (nrow(df_i) == 0) next
-    p <- p %>%
-      add_trace(
-        data = df_i,
-        x = ~Ola, y = ~Valor,
-        type = "scatter", mode = "lines+markers",
-        name = sel[i],
-        line   = list(width = 3, color = my_colors[i]),
-        marker = list(size = 8,  color = my_colors[i]),
-        hovertemplate = "<b>Ola:</b> %{x}<br><b>Subdimensión:</b> %{fullData.name}<br><b>Valor:</b> %{y:.2f}<extra></extra>"
+
+    p <- p %>% add_trace(
+      data  = df_i,
+      x     = ~Ola, y = ~Valor,
+      type  = "scatter", mode = "lines+markers",
+      name  = paste0(sd, " — ", area_label),
+      legendgroup = sd,  # agrupa por subdimensión en la leyenda
+      line   = list(width = 3, color = unname(color_map[[sd]]), dash = line_dash),
+      marker = list(size = 8,  color = unname(color_map[[sd]])),
+      hovertemplate = paste0(
+        "<b>Ola:</b> %{x}",
+        "<br><b>Área:</b> ", area_label,
+        "<br><b>Subdimensión:</b> %{fullData.name}",
+        "<br><b>Valor:</b> %{y:.2f}<extra></extra>"
       )
+    )
   }
+  p
+}
+
+# --- Poblar selectores (SIN server=TRUE) ---
+
+# Vertical
+observe({
+  choices_v <- df_long %>%
+    filter(Areas == "Area vertical") %>%
+    select(Dimension, Subdimension) %>%
+    distinct() %>%
+    make_grouped_choices()
+
+  updateSelectizeInput(
+    session, "subdims_from_area_v",
+    choices = choices_v,
+    selected = NULL
+  )
+})
+
+# Horizontal
+observe({
+  choices_h <- df_long %>%
+    filter(Areas == "Area horizontal") %>%
+    select(Dimension, Subdimension) %>%
+    distinct() %>%
+    make_grouped_choices()
+
+  updateSelectizeInput(
+    session, "subdims_from_area_h",
+    choices = choices_h,
+    selected = NULL
+  )
+})
+
+# --- Render único (paleta global compartida por ambas áreas) ---
+
+output$subdims_plot <- renderPlotly({
+  if (no_real_choice(input$subdims_from_area_v) &&
+      no_real_choice(input$subdims_from_area_h)) {
+    return(NULL)
+  }
+
+  color_map <- build_color_map(input$subdims_from_area_v, input$subdims_from_area_h)
+
+  p <- plot_ly()
+  p <- add_area_traces(p, input$subdims_from_area_v, "Area vertical",   line_dash = "solid", color_map = color_map)
+  p <- add_area_traces(p, input$subdims_from_area_h, "Area horizontal", line_dash = "solid",  color_map = color_map)
 
   p %>%
     layout(
-      title = paste0("Serie temporal para Área: ", input$area),
+      title = "Serie temporal — Promedios de las subdimensiones",
       xaxis = list(title = "Ola", dtick = 1),
       yaxis = list(title = "Valor", range = c(1, 5)),
-      showlegend = TRUE   # leyenda siempre visible (aunque haya 1 línea)
+      showlegend = TRUE
     )
 })
+
 
 
 ## BIVARIADO ----
