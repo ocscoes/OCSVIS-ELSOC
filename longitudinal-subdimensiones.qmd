@@ -48,7 +48,6 @@ library(V8)
 # library(Cairo)
 library(shinythemes)
 library(htmltools)
-library(forcats)
 options(shiny.usecairo = TRUE)
 
 shinyWidgets:::html_dependency_picker_bs(
@@ -228,11 +227,11 @@ tagList(
       6,
       selectizeInput(
         "subdims_from_area_v",
-        "Área vertical:",
+        "Subdimensiones verticales:",
         choices = NULL,
         multiple = TRUE,
         options = list(
-          placeholder = "Elige hasta 4 elementos...",
+          placeholder = "Elige hasta 4 subdimensiones (Vertical)...",
           maxItems = 4,
           plugins = list("remove_button"),
           onInitialize = I("
@@ -256,11 +255,11 @@ tagList(
       6,
       selectizeInput(
         "subdims_from_area_h",
-        "Área horizontal:",
+        "Subdimensiones horizontales:",
         choices = NULL,
         multiple = TRUE,
         options = list(
-          placeholder = "Elige hasta 4 elementos...",
+          placeholder = "Elige hasta 4 subdimensiones (Horizontal)...",
           maxItems = 4,
           plugins = list("remove_button"),
           onInitialize = I("
@@ -622,38 +621,6 @@ df_long<-
 df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue_sdim)
 
-# Crear valor de las dimensiones 
-df_long <- df_long %>%
-  group_by(Ola, Subdimension) %>%
-  mutate(Valor = mean(Valor, na.rm = TRUE)) %>%
-  ungroup()
-
-# 2) Calcula el promedio por Dimensión a partir de las Subdimensiones (igual peso por subdimensión)
-dim_means <- df_long %>%
-  distinct(Ola, Dimension, Subdimension, Valor) %>%     # evita sobre-representar subdimensiones con más ítems
-  group_by(Ola, Dimension) %>%
-  summarise(valor_dim = mean(Valor, na.rm = TRUE), .groups = "drop")
-
-# 3) Adjunta 'valor_dim' al df original
-df_long <- df_long %>%
-  left_join(dim_means, by = c("Ola", "Dimension"))
-
-# 4) Se genera una base nueva donde se apilan los promedios de las dimensiones en las subdimensiones
-
-# Base con valores por subdimensión (ya existentes)
-df_sub <- df_long %>%
-  select(Ola, Subdimension, Dimension, Areas, Valor)
-
-# Base con valores por dimensión (nuevas filas)
-df_dim <- df_long %>%
-  distinct(Ola, Dimension, Areas, valor_dim) %>%
-  rename(Subdimension = Dimension, Valor = valor_dim)
-
-# Unimos ambas bases (subdimensiones + dimensiones)
-df_comb <- bind_rows(df_sub, df_dim) %>%
-  arrange(Ola, Areas, Dimension, Subdimension, Valor)
-
-
 # Longitudinal (Author: Tomás)-----------------------------------------------------
 
 # 3) Plot: SOLO subdimensiones (líneas por subdimensión) usando 'Ola'
@@ -662,57 +629,42 @@ df_comb <- bind_rows(df_sub, df_dim) %>%
 my_colors <- c("#1f77b4", "#2ca02c", "purple", "orange")
 no_real_choice <- function(x) is.null(x) || length(x) == 0
 
-# Evita el patrón "a:b" con vectores (usa seq_len)
-safe_slice <- function(n, max_n) seq_len(min(length(n), max_n))
-
-# --- Optgroups: lista "Dimensión" = c(subdims,...) con NA agrupadas ---
-make_grouped_choices <- function(df, na_group = "Dimensiones") {
+# Optgroups: lista "Dimensión" = c(subdims,...)
+make_grouped_choices <- function(df) {
   df %>%
     distinct(Dimension, Subdimension) %>%
-    filter(!is.na(Subdimension)) %>%
-    mutate(
-      # Si es factor, usa forcats; si no, replace_na
-      Dimension = if (is.factor(Dimension)) {
-        forcats::fct_na_value_to_level(Dimension, level = na_group)
-      } else {
-        tidyr::replace_na(Dimension, na_group)
-      },
-      Dimension   = as.character(Dimension),
-      Subdimension = as.character(Subdimension)
-    ) %>%
+    filter(!is.na(Dimension), !is.na(Subdimension)) %>%
     arrange(Dimension, Subdimension) %>%
     { split(.$Subdimension, .$Dimension) }
 }
 
-# --- Paleta global por orden combinado (vertical + horizontal) ---
+# Paleta global por orden combinado (vertical + horizontal)
 build_color_map <- function(sel_v, sel_h) {
-  sel_v  <- if (is.null(sel_v)) character(0) else sel_v
-  sel_h  <- if (is.null(sel_h)) character(0) else sel_h
+  sel_v <- if (is.null(sel_v)) character(0) else sel_v
+  sel_h <- if (is.null(sel_h)) character(0) else sel_h
   sel_all <- c(sel_v, sel_h)
-  if (length(sel_all) == 0) return(setNames(character(0), character(0)))
+  if (length(sel_all) == 0) return(setNames(character(0), character(0)))  # <-- fix
 
   sel_all <- sel_all[!duplicated(sel_all)]
-  idx <- seq_len(min(length(sel_all), length(my_colors)))  # <- evita a:b con vector
-  setNames(my_colors[idx], sel_all[idx])
+  sel_all <- sel_all[seq_len(min(length(sel_all), length(my_colors)))]
+  setNames(my_colors[seq_along(sel_all)], sel_all)
 }
 
-# --- Añade trazas de un área usando df_comb ---
+# Añade trazas de un área usando color_map global y estilo por área
 add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_map) {
   if (no_real_choice(selected_subdims)) return(p)
-
   keep <- intersect(selected_subdims, names(color_map))
   if (length(keep) == 0) return(p)
 
-  dplot <- df_comb %>%
+  dplot <- df_long %>%
     filter(Areas == area_label, Subdimension %in% keep) %>%
     group_by(Ola, Subdimension) %>%
-    summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop") %>%
-    arrange(Ola)
+    summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop")
 
   if (nrow(dplot) == 0) return(p)
 
   for (sd in keep) {
-    df_i <- dplyr::filter(dplot, Subdimension == sd)
+    df_i <- filter(dplot, Subdimension == sd)
     if (nrow(df_i) == 0) next
 
     p <- p %>% add_trace(
@@ -720,13 +672,13 @@ add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_ma
       x     = ~Ola, y = ~Valor,
       type  = "scatter", mode = "lines+markers",
       name  = paste0(sd, " — ", area_label),
-      legendgroup = sd,
+      legendgroup = sd,  # agrupa por subdimensión en la leyenda
       line   = list(width = 3, color = unname(color_map[[sd]]), dash = line_dash),
-      marker = list(size = 8, color = unname(color_map[[sd]])),
+      marker = list(size = 8,  color = unname(color_map[[sd]])),
       hovertemplate = paste0(
         "<b>Ola:</b> %{x}",
         "<br><b>Área:</b> ", area_label,
-        "<br><b>Subdimensión:</b> ", sd,
+        "<br><b>Subdimensión:</b> %{fullData.name}",
         "<br><b>Valor:</b> %{y:.2f}<extra></extra>"
       )
     )
@@ -734,28 +686,40 @@ add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_ma
   p
 }
 
-# --- SELECTORES (solo df_comb) ---
+# --- Poblar selectores (SIN server=TRUE) ---
+
+# Vertical
 observe({
-  choices_v <- df_comb %>%
+  choices_v <- df_long %>%
     filter(Areas == "Area vertical") %>%
     select(Dimension, Subdimension) %>%
-    make_grouped_choices(na_group = "Dimensiones")
+    distinct() %>%
+    make_grouped_choices()
 
-  updateSelectizeInput(session, "subdims_from_area_v",
-                       choices = choices_v, selected = NULL)
+  updateSelectizeInput(
+    session, "subdims_from_area_v",
+    choices = choices_v,
+    selected = NULL
+  )
 })
 
+# Horizontal
 observe({
-  choices_h <- df_comb %>%
+  choices_h <- df_long %>%
     filter(Areas == "Area horizontal") %>%
     select(Dimension, Subdimension) %>%
-    make_grouped_choices(na_group = "Dimensiones")
+    distinct() %>%
+    make_grouped_choices()
 
-  updateSelectizeInput(session, "subdims_from_area_h",
-                       choices = choices_h, selected = NULL)
+  updateSelectizeInput(
+    session, "subdims_from_area_h",
+    choices = choices_h,
+    selected = NULL
+  )
 })
 
-# --- RENDER DEL GRÁFICO ---
+# --- Render único (paleta global compartida por ambas áreas) ---
+
 output$subdims_plot <- renderPlotly({
   if (no_real_choice(input$subdims_from_area_v) &&
       no_real_choice(input$subdims_from_area_h)) {
@@ -766,13 +730,13 @@ output$subdims_plot <- renderPlotly({
 
   p <- plot_ly()
   p <- add_area_traces(p, input$subdims_from_area_v, "Area vertical",   line_dash = "solid", color_map = color_map)
-  p <- add_area_traces(p, input$subdims_from_area_h, "Area horizontal", line_dash = "solid", color_map = color_map)
+  p <- add_area_traces(p, input$subdims_from_area_h, "Area horizontal", line_dash = "solid",  color_map = color_map)
 
   p %>%
     layout(
-      title  = "Serie temporal desde 2016 hasta 2023",
-      xaxis  = list(title = "Ola", dtick = 1),
-      yaxis  = list(title = "Valor", range = c(1, 5)),
+      title = "Serie temporal — Promedios de las subdimensiones",
+      xaxis = list(title = "Ola", dtick = 1),
+      yaxis = list(title = "Valor", range = c(1, 5)),
       showlegend = TRUE
     )
 })
