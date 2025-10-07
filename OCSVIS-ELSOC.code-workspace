@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "tesis",
+			"path": "../tesis"
+		},
+		{
+			"name": "tesis-1",
+			"path": "../tesis-1"
+		}
+	],
+	"settings": {
+		"githubPullRequests.ignoredPullRequestBranches": [
+			"propuesta-2025"
+		]
+	}
+}

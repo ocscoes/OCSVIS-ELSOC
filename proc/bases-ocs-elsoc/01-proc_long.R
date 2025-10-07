@@ -333,6 +333,43 @@ db %>%
     .groups = "drop"
   )
 
+# Invertir escala de variables de seguridad objetiva 
+# Original: 1=Nunca, 2=Casi nunca, 3=A veces, 4=Casi siempre, 5=Siempre (problemas)
+# Invertido: 1=Siempre, 2=Casi siempre, 3=A veces, 4=Casi nunca, 5=Nunca (problemas)
+# Ahora: Valores altos = Mayor seguridad (menos problemas)
+db <- db %>%
+  mutate(
+    peleas_calle = 6 - peleas_calle,
+    asaltos = 6 - asaltos,
+    trafico_drogas = 6 - trafico_drogas
+  )
+
+# Actualizar las etiquetas después de la inversión
+etiquetas_invertidas <- c(
+  "Siempre" = 1,
+  "Casi siempre" = 2, 
+  "A veces" = 3,
+  "Casi nunca" = 4,
+  "Nunca" = 5
+)
+
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$peleas_calle <- sjlabelled::set_labels(db$peleas_calle, labels = etiquetas_invertidas)
+db$asaltos <- sjlabelled::set_labels(db$asaltos, labels = etiquetas_invertidas)
+db$trafico_drogas <- sjlabelled::set_labels(db$trafico_drogas, labels = etiquetas_invertidas)
+
+# Verificar la inversión de escala
+cat("=== VERIFICACIÓN DE INVERSIÓN DE ESCALA ===\n")
+cat("Ahora: 5=Nunca problemas (muy seguro), 1=Siempre problemas (muy inseguro)\n")
+cat("Rango de valores después de inversión:\n")
+cat("peleas_calle:", range(db$peleas_calle, na.rm = TRUE), "\n")
+cat("asaltos:", range(db$asaltos, na.rm = TRUE), "\n")
+cat("trafico_drogas:", range(db$trafico_drogas, na.rm = TRUE), "\n")
+
+# Verificar distribución por ola
+cat("\nDistribución de peleas_calle por ola (después de inversión):\n")
+print(table(db$ola, db$peleas_calle, useNA = "ifany"))
+
 db$seguridad_obj <- rowMeans(db[, c("peleas_calle", "asaltos", "trafico_drogas")], na.rm = TRUE)
 db$seguridad_obj <- (round(db$seguridad_obj * 2) / 2)
 
@@ -685,6 +722,36 @@ db %>%
     .groups = "drop"
   )
 
+# Invertir escala de variables de preferencias autoritarias
+# Original: 1=Totalmente en desacuerdo, 2=En desacuerdo, 3=Ni acuerdo ni desacuerdo, 4=De acuerdo, 5=Totalmente de acuerdo
+# Invertido: 1=Totalmente de acuerdo, 2=De acuerdo, 3=Ni acuerdo ni desacuerdo, 4=En desacuerdo, 5=Totalmente en desacuerdo
+# Ahora: Valores altos = Menor autoritarismo (más democrático)
+db <- db %>%
+  mutate(
+    gobierno_firme = 6 - gobierno_firme,
+    mandatario_fuerte = 6 - mandatario_fuerte,
+    vida_disciplinar = 6 - vida_disciplinar
+  )
+
+# Actualizar las etiquetas después de la inversión
+etiquetas_autoritarias_invertidas <- c(
+  "Totalmente de acuerdo" = 1,
+  "De acuerdo" = 2,
+  "Ni acuerdo ni desacuerdo" = 3,
+  "En desacuerdo" = 4,
+  "Totalmente en desacuerdo" = 5
+)
+
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$gobierno_firme <- sjlabelled::set_labels(db$gobierno_firme, labels = etiquetas_autoritarias_invertidas)
+db$mandatario_fuerte <- sjlabelled::set_labels(db$mandatario_fuerte, labels = etiquetas_autoritarias_invertidas)
+db$vida_disciplinar <- sjlabelled::set_labels(db$vida_disciplinar, labels = etiquetas_autoritarias_invertidas)
+
+# Verificar la inversión
+cat("=== VERIFICACIÓN INVERSIÓN PREFERENCIAS AUTORITARIAS ===\n")
+cat("Ahora: 5=Totalmente en desacuerdo con autoritarismo (más democrático)\n")
+cat("       1=Totalmente de acuerdo con autoritarismo (más autoritario)\n")
+
 
 db$pref_autor <- rowMeans(db[, c("gobierno_firme", "mandatario_fuerte", "vida_disciplinar")], na.rm = TRUE)
 frq(db$pref_autor);psych::describe(db$pref_autor)
@@ -723,6 +790,36 @@ db %>%
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
+
+# Invertir escala de variables de justicia distributiva
+# Original: 1=Totalmente en desacuerdo, 2=En desacuerdo, 3=Ni acuerdo ni desacuerdo, 4=De acuerdo, 5=Totalmente de acuerdo
+# Invertido: 1=Totalmente de acuerdo, 2=De acuerdo, 3=Ni acuerdo ni desacuerdo, 4=En desacuerdo, 5=Totalmente en desacuerdo
+# Ahora: Valores altos = Mayor percepción de justicia (más justo)
+db <- db %>%
+  mutate(
+    justicia_pensiones = 6 - justicia_pensiones,
+    justicia_educacion = 6 - justicia_educacion,
+    justicia_salud = 6 - justicia_salud
+  )
+
+# Actualizar las etiquetas después de la inversión
+etiquetas_justicia_invertidas <- c(
+  "Totalmente de acuerdo" = 1,
+  "De acuerdo" = 2,
+  "Ni acuerdo ni desacuerdo" = 3,
+  "En desacuerdo" = 4,
+  "Totalmente en desacuerdo" = 5
+)
+
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$justicia_pensiones <- sjlabelled::set_labels(db$justicia_pensiones, labels = etiquetas_justicia_invertidas)
+db$justicia_educacion <- sjlabelled::set_labels(db$justicia_educacion, labels = etiquetas_justicia_invertidas)
+db$justicia_salud <- sjlabelled::set_labels(db$justicia_salud, labels = etiquetas_justicia_invertidas)
+
+# Verificar la inversión
+cat("=== VERIFICACIÓN INVERSIÓN JUSTICIA DISTRIBUTIVA ===\n")
+cat("Ahora: 5=Totalmente en desacuerdo con injusticia (más justo)\n")
+cat("       1=Totalmente de acuerdo con injusticia (menos justo)\n")
 
 db$just_distrib <- rowMeans(db[, c("justicia_pensiones", "justicia_educacion", "justicia_salud")], na.rm = TRUE)
 
@@ -795,7 +892,7 @@ sjPlot::view_df(db,
 #  Database ID and Wave
 
 # ==========================================
-# BASE 1: Promedios por ID de encuesta
+# BASE 1a: Promedios por ID de encuesta
 # ==========================================
 
 db <- db %>%
@@ -810,6 +907,12 @@ db <- db %>%
 # Ver resultado
 head(db)
 dim(db)
+
+# ==========================================
+# BASE 1b: Promedios por ID de encuesta
+# ==========================================
+
+
 
 # ==========================================
 # BASE 2: Promedios por ola (sin NAs)
@@ -1026,6 +1129,145 @@ db_categ_ola_muestra
 
 # Guardar
 save(db_categ_ola_muestra, file = here ("data/bases-vis-elsoc/db_categ_ola_muestra.RData"))
+
+# ==============================================
+# BASE 4: Base longitudinal con estructura jerárquica
+# ==============================================
+
+# Crear base longitudinal con todos los indicadores
+variables_indicadores <- c(
+  "peleas_calle", "asaltos", "trafico_drogas",
+  "seguridad_sat", "seguridad_perc", 
+  "barrio_ideal", "barrio_integracion", "barrio_identidad", "barrio_pertenencia",
+  "barrio_amigos", "barrio_sociable", "barrio_cordial", "barrio_colaborador",
+  "confianza_gen", "altruismo_gen",
+  "reunion_pub", "voluntariado",
+  "prestar_dinero", "ayuda_trabajo",
+  "conf_gobierno", "conf_pp", "conf_congreso",
+  "firma_peticion", "asiste_marcha", "part_huelga",
+  "voto_deber", "voto_influye", "voto_expresion",
+  "interes_politica", "hablar_politica", "infopolitica_medios",
+  "gobierno_firme", "mandatario_fuerte", "vida_disciplinar",
+  "justicia_pensiones", "justicia_educacion", "justicia_salud"
+)
+
+# Crear base en formato largo
+df_long_jerarquica <- db %>%
+  select(ola, all_of(variables_indicadores)) %>%
+  pivot_longer(
+    cols = -ola,
+    names_to = "indicador",
+    values_to = "meanvalue"
+  ) %>%
+  group_by(ola, indicador) %>%
+  summarise(meanvalue = mean(meanvalue, na.rm = TRUE), .groups = "drop")
+
+# Crear subdimensiones
+df_long_jerarquica$subdimension <- 
+car::recode(df_long_jerarquica$indicador, "
+  'peleas_calle'       = 'Seguridad objetiva';
+  'asaltos'            = 'Seguridad objetiva';
+  'trafico_drogas'     = 'Seguridad objetiva';
+  
+  'seguridad_sat'      = 'Seguridad subjetiva';
+  'seguridad_perc'     = 'Seguridad subjetiva';
+  
+  'barrio_ideal'       = 'Pertenencia al Barrio';
+  'barrio_integracion' = 'Pertenencia al Barrio';
+  'barrio_identidad'   = 'Pertenencia al Barrio';
+  'barrio_pertenencia' = 'Pertenencia al Barrio';
+  
+  'barrio_amigos'      = 'Satisfacción con el barrio';
+  'barrio_sociable'    = 'Satisfacción con el barrio';
+  'barrio_cordial'     = 'Satisfacción con el barrio';
+  'barrio_colaborador' = 'Satisfacción con el barrio';
+  
+  'confianza_gen'      = 'Confianza interpersonal';
+  'altruismo_gen'      = 'Confianza interpersonal';
+  
+  'reunion_pub'        = 'Comportamiento prosocial';
+  'voluntariado'       = 'Comportamiento prosocial';
+  
+  'prestar_dinero'     = 'Ayuda económica';
+  'ayuda_trabajo'      = 'Ayuda económica';
+  
+  'conf_gobierno'      = 'Confianza en instituciones políticas';
+  'conf_pp'            = 'Confianza en instituciones políticas';
+  'conf_congreso'      = 'Confianza en instituciones políticas';
+  
+  'firma_peticion'     = 'Participación política';
+  'asiste_marcha'      = 'Participación política';
+  'part_huelga'        = 'Participación política';
+  
+  'voto_deber'         = 'Autoeficacia política';
+  'voto_influye'       = 'Autoeficacia política';
+  'voto_expresion'     = 'Autoeficacia política';
+  
+  'interes_politica'   = 'Interés en política';
+  'hablar_politica'    = 'Interés en política';
+  'infopolitica_medios'= 'Interés en política';
+  
+  'gobierno_firme'     = 'Preferencias autoritarias';
+  'mandatario_fuerte'  = 'Preferencias autoritarias';
+  'vida_disciplinar'   = 'Preferencias autoritarias';
+  
+  'justicia_pensiones' = 'Justicia distributiva';
+  'justicia_educacion' = 'Justicia distributiva';
+  'justicia_salud'     = 'Justicia distributiva'
+")
+
+# Verificar subdimensiones
+sjmisc::frq(df_long_jerarquica$subdimension)
+
+# Crear dimensiones
+df_long_jerarquica$dimension <- 
+car::recode(df_long_jerarquica$subdimension, "
+            'Seguridad objetiva'  = 'Seguridad pública';
+            'Seguridad subjetiva' = 'Seguridad pública';
+            
+            'Satisfacción con el barrio' = 'Vínculos territoriales';
+            'Pertenencia al Barrio' = 'Vínculos territoriales';
+            
+            'Ayuda económica' = 'Redes sociales';
+            'Comportamiento prosocial' = 'Redes sociales';
+            'Confianza interpersonal' = 'Redes sociales';
+            
+            'Confianza en instituciones políticas' = 'Confianza en instituciones';            
+
+            'Autoeficacia política' = 'Participación y actitudes políticas';
+            'Interés en política' = 'Participación y actitudes políticas';
+            'Participación política' = 'Participación y actitudes políticas';   
+            
+            'Preferencias autoritarias' = 'Preferencia por autoritarismo';
+            
+            'Justicia distributiva' = 'Justicia distributiva';
+            ")
+
+# Verificar dimensiones
+sjmisc::frq(df_long_jerarquica$dimension)
+
+# Crear áreas
+df_long_jerarquica$area <- 
+car::recode(df_long_jerarquica$dimension, "
+            'Seguridad pública'  = 'Area horizontal';
+            'Vínculos territoriales' = 'Area horizontal';
+            'Redes sociales' = 'Area horizontal';
+            
+            'Confianza en instituciones' = 'Area vertical';            
+            'Participación y actitudes políticas' = 'Area vertical';
+            'Preferencia por autoritarismo' = 'Area vertical';
+            'Justicia distributiva' = 'Area vertical'
+            ")
+
+# Verificar áreas
+sjmisc::frq(df_long_jerarquica$area)
+
+# Ver resultado final
+head(df_long_jerarquica, 20)
+glimpse(df_long_jerarquica)
+
+# Guardar base longitudinal
+save(df_long_jerarquica, file = here ("data/bases-vis-elsoc/df_long_jerarquica.RData"))
 
 sjPlot::view_df(db_categ,
                 show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
