@@ -105,6 +105,7 @@ UP_LEVEL_OPTION_VALUE <- "__VOLVER__" # Nuevo valor único para la opción "subi
 #   summarise(min_val = min(Valor, na.rm = TRUE),
 #             max_val = max(Valor, na.rm = TRUE))
 
+load("data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
 ```
 
 ```{=HTML}
@@ -461,20 +462,20 @@ tags$style(HTML("
     border: none;
 }
 "))
-
-# Control deslizante para seleccionar la "Ola" (año)
-tags$div(class = "styled-slider",
-sliderInput("Ola_bi", "Seleccione la Ola:",
-            min = min(unique_years_bi),
-            max = max(unique_years_bi),
-            value = max(unique_years_bi), # Por defecto, la última Ola
-            step = 2, # Pasos de 2 años
-            sep = "")) # Sin separador de miles en los años
-
-            selectInput("x_var", "Variable para el eje X:", choices = unique(df_bivariado$Variable), selected = "Cohesión horizontal")
-            selectInput("y_var", "Variable para el eje Y:", choices = unique(df_bivariado$Variable), selected = "Cohesión vertical")
-            
-            checkboxInput("show_flags", "Banderas en lugar de puntos.", TRUE)
+sidebarPanel(
+  selectInput(
+    inputId = "subdim_select",
+    label = "Choose Subdimension:",
+    choices = sort(unique(df_long_bivariate$Subdimension)),
+    selected = sort(unique(df_long_bivariate$Subdimension))[1]
+  ),
+  selectInput(
+    inputId = "category_select",
+    label = "Choose Category:",
+    choices = sort(unique(df_long_bivariate$category)),
+    selected = sort(unique(df_long_bivariate$category))[1]
+  )
+)
 ```
 
 ```{r}
@@ -484,7 +485,7 @@ uiOutput("descripcion_bivariado")
 ## Gráfico
 
 ```{r}
-plotlyOutput("plot", height = "800px")
+plotlyOutput("plot_bivariado", height = "800px")
 ```
 
 # Server
@@ -705,303 +706,216 @@ output$subdims_plot <- renderPlotly({
 
 ## BIVARIADO ----
 
-noDataMessage <- reactiveVal(FALSE)
+# load("data/bases-vis-elsoc/df_long_jerarquica.RData")
 
-observe({
-  x_var <- input$x_var
-  y_var <- input$y_var
-  time_point <- input$Ola_bi
-
-  temp_df <- df_bivariado %>% filter(Ola == time_point)
-
-  x_data <- temp_df %>% filter(Variable == x_var, .preserve = TRUE) %>% pull(Valor)
-  y_data <- temp_df %>% filter(Variable == y_var, .preserve = TRUE) %>% pull(Valor)
-
-  x_available <- nrow(temp_df %>% filter(Variable == x_var, .preserve = TRUE)) > 0 && any(!is.na(x_data))
-  y_available <- nrow(temp_df %>% filter(Variable == y_var, .preserve = TRUE)) > 0 && any(!is.na(y_data))
-
-  if (x_available && y_available) {
-    removeModal()
-    noDataMessage(FALSE)
-  } else {
-    showModal(modalDialog(
-      tags$div(tags$h4("Atención"), style = "display: inline-block;"),
-      tags$button(tags$i(class = "fa fa-times"), type = "button", class = "close", `data-dismiss` = "modal",
-                  `aria-label` = "Close", style = "margin-left: 15px;"),
-      "No hay datos disponibles para la variable en este año. Por favor, seleccione otro.",
-      easyClose = TRUE,
-      footer = NULL
-    ))
-    noDataMessage(TRUE)
-  }
-})
-
-# --- Función para obtener la URL de la bandera ---
-# En lugar de devolver un emoji, esta función devuelve la URL de una imagen de la bandera.
-get_flag_url <- function(country_name) {
-  # Mapeo de nombres de países a códigos ISO de 2 letras (en minúsculas)
-  country_codes <- list(
-    Argentina = "ar",
-    Belize = "bz",
-    Bolivia = "bo",
-    Brazil = "br",
-    Canada = "ca",
-    Chile = "cl",
-    Colombia = "co",
-    `Costa Rica` = "cr",
-    `Dominican Republic` = "do",
-    Ecuador = "ec",
-    `El Salvador` = "sv",
-    Guatemala = "gt",
-    Guyana = "gy",
-    Haiti = "ht",
-    Honduras = "hn",
-    Jamaica = "jm",
-    Mexico = "mx",
-    Nicaragua = "ni",
-    Panama = "pa",
-    Paraguay = "py",
-    Peru = "pe",
-    `Trinidad & Tobago` = "tt",
-    `United States` = "us",
-    Uruguay = "uy",
-    Venezuela = "ve"
-    # No incluimos "Promedio" ya que no tiene una bandera de país.
-  )
-  
-  code <- country_codes[[country_name]]
-  if (is.null(code)) {
-    return(NA) # Devolver NA si el país no se encuentra
-  }
-  
-  # Formatear la URL. w40 indica un ancho de 40px
-  return(paste0("https://flagcdn.com/w40/", code, ".png"))
-}
-
-# --- Renderizado del Gráfico en Shiny ---
-output$plot <- renderPlotly({
-  if (noDataMessage()) return(NULL)
-  
-  x_var <- input$x_var
-  y_var <- input$y_var
-  time_point <- input$Ola_bi
-  show_flags <- input$show_flags
-  
-  temp_df <- df_bivariado %>%
-    filter(Ola == time_point) %>%
-    pivot_wider(names_from = Variable, values_from = Valor) %>%
-    select(País, all_of(c(x_var, y_var))) %>%
-    drop_na()
-  
-  if (!all(c(x_var, y_var) %in% names(temp_df))) {
-    showNotification("Error: Variables seleccionadas no encontradas", type = "error")
-    return(NULL)
-  }
-  
-  temp_df <- temp_df %>%
-    rename(x_val = !!sym(x_var), y_val = !!sym(y_var))
-  
-  p <- plot_ly()
-  images_list <- list()
-  
-  # Dimensiones relativas para imágenes (solo si se usan)
-  x_range <- diff(range(temp_df$x_val, na.rm = TRUE))
-  y_range <- diff(range(temp_df$y_val, na.rm = TRUE))
-  sizex <- x_range * 0.05
-  sizey <- y_range * 0.08
-  
-  for (pais in unique(temp_df$País)) {
-  row <- temp_df[temp_df$País == pais, ]
-  if (nrow(row) == 0) next
-
-  # Hover personalizado
-  hover_text <- paste0(
-    "País: ", pais,
-    "<br>", x_var, ": ", sprintf("%.2f", row$x_val),
-    "<br>", y_var, ": ", sprintf("%.2f", row$y_val)
-  )
-
-  # Si se muestran banderas
-  if (show_flags) {
-    img_url <- get_flag_url(pais)
-
-    # Agregar imagen
-    images_list[[length(images_list) + 1]] <- list(
-      source = img_url,
-      x = row$x_val,
-      y = row$y_val,
-      sizex = sizex,
-      sizey = sizey,
-      xref = "x",
-      yref = "y",
-      xanchor = "center",
-      yanchor = "middle",
-      layer = "above"
-    )
-
-    # Agregar marcador invisible para hover y leyenda
-    p <- add_markers(p,
-      x = row$x_val,
-      y = row$y_val,
-      name = pais,
-      marker = list(opacity = 0),
-      text = hover_text,
-      hoverinfo = "text"
-    )
-
-  } else {
-    # Agregar punto con color automático y leyenda
-    p <- add_markers(p,
-      x = row$x_val,
-      y = row$y_val,
-      name = pais,
-      marker = list(size = 12),
-      text = hover_text,
-      hoverinfo = "text"
-    )
-  }
-}
+# Preparation for Education-----------------------------------------------------
+# load("data/bases-vis-elsoc/bivariados_long_categoricos.RData")
+# db_categ <- cine_categ %>% select(ola,cine,categoria,starts_with("prop_")) %>% filter(categoria=="Alto")
+# names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
+# 
+# vars <- db_categ %>%
+#   ungroup () %>%
+#   select(
+#     # seguridad_pub
+#     seguridad_obj,seguridad_sub,
+#     # vinculos_territ
+#     sentido_pertenencia,satisfaccion_barrio,
+#     # redes_sociales
+#     comportamiento_prosocial,ayuda_economica,confianza_inter,
+# 
+#     conf_inst_pol,
+# 
+#     # prac_acti_pol,
+#     pp_politica,auto_efic,int_pol,
+# 
+#     pref_autor,
+# 
+#     just_distrib
+# 
+#     ) %>% names()
+# 
+# df_long <- db_categ %>%
+#   group_by(ola,cine) %>%
+#   summarise(across(all_of(vars), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+#   ungroup() %>%
+#   pivot_longer(cols = c(vars),names_to = "subdimension", values_to = "meanvalue") %>%
+#   mutate(subdimension = factor(subdimension, levels = vars)) %>%
+#   arrange(ola,subdimension)
 
 
-  # Línea LOESS
-  if (nrow(temp_df) >= 5) {
-    tryCatch({
-      fit_loess <- loess(y_val ~ x_val, data = temp_df)
-      x_seq <- seq(min(temp_df$x_val), max(temp_df$x_val), length.out = 100)
-      y_pred <- predict(fit_loess, newdata = data.frame(x_val = x_seq))
-      p <- add_lines(
-        p, x = x_seq, y = y_pred, name = "Tendencia",
-        line = list(color = "black", dash = "dash"), hoverinfo = "none"
-      )
-    }, error = function(e) {
-      message("Error al ajustar LOESS: ", e$message)
-    })
-  }
-  
-  # Layout final
-  p <- p %>% layout(
-    title = "Análisis bivariado para subdimensiones de cohesión social",
-    xaxis = list(title = x_var),
-    yaxis = list(title = y_var),
-    images = images_list,
-    showlegend = TRUE
-  )
-  
-  return(p)
-})
+# df_long$subdimension <- NULL
+# df_long$dimension <- NULL
+# df_long$area <- NULL
+# library(dplyr)
+# 
+# 
+# sjmisc::frq(df_long$subdimension)
+# df_long$dimension <-
+# car::recode(df_long$subdimension, "
+#             'seguridad_obj'  = 'Seguridad pública';
+#             'seguridad_sub' = 'Seguridad pública';
+# 
+#             'sentido_pertenencia' = 'Vínculos territoriales';
+#             'satisfaccion_barrio' = 'Vínculos territoriales';
+# 
+#             'ayuda_economica' = 'Redes sociales';
+#             'comportamiento_prosocial' = 'Redes sociales';
+#             'confianza_inter' = 'Redes sociales';
+# 
+#             'conf_inst_pol' = 'Confianza en instituciones';
+# 
+#             'pp_politica' = 'Participación y actitudes políticas';
+#             'auto_efic' = 'Participación y actitudes políticas';
+#             'int_pol' = 'Participación y actitudes políticas';
+# 
+#             'pref_autor' = 'Preferencia por autoritarismo';
+# 
+#             'just_distrib' = 'Justicia distributiva';
+#             "
+#             )
+# 
+# sjmisc::frq(df_long$dimension)
+# 
+# df_long$area <-
+# car::recode(df_long$dimension, "
+#             'Seguridad pública'  = 'Area horizontal';
+#             'Vínculos territoriales' = 'Area horizontal';
+#             'Redes sociales' = 'Area horizontal';
+# 
+#             'Confianza en instituciones' = 'Area vertical';
+#             'Participación y actitudes políticas' = 'Area vertical';
+#             'Preferencia por autoritarismo' = 'Area vertical';
+#             'Justicia distributiva' = 'Area vertical'
+#             "
+#             )
+# 
+# df_long_cine<-
+# df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
+#   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue,levels=cine) %>%
+#   mutate(category="Educación")
+# # Prepare data for Gender------------------------------------------------------
+# db_categ <- sexo_categ %>% select(ola,sexo,categoria,starts_with("prop_")) %>% filter(categoria=="Alto")
+# names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
+# 
+# vars <- db_categ %>%
+#   ungroup () %>%
+#   select(
+#     # seguridad_pub
+#     seguridad_obj,seguridad_sub,
+#     # vinculos_territ
+#     sentido_pertenencia,satisfaccion_barrio,
+#     # redes_sociales
+#     comportamiento_prosocial,ayuda_economica,confianza_inter,
+# 
+#     conf_inst_pol,
+# 
+#     # prac_acti_pol,
+#     pp_politica,auto_efic,int_pol,
+# 
+#     pref_autor,
+# 
+#     just_distrib
+# 
+#     ) %>% names()
+# 
+# df_long <- db_categ %>%
+#   group_by(ola,sexo) %>%
+#   summarise(across(all_of(vars), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+#   ungroup() %>%
+#   pivot_longer(cols = c(vars),names_to = "subdimension", values_to = "meanvalue") %>%
+#   mutate(subdimension = factor(subdimension, levels = vars)) %>%
+#   arrange(ola,subdimension)
+# 
+# 
+# df_long$dimension <- NULL
+# df_long$area <- NULL
+# library(dplyr)
+# 
+# 
+# sjmisc::frq(df_long$subdimension)
+# df_long$dimension <-
+# car::recode(df_long$subdimension, "
+#             'seguridad_obj'  = 'Seguridad pública';
+#             'seguridad_sub' = 'Seguridad pública';
+# 
+#             'sentido_pertenencia' = 'Vínculos territoriales';
+#             'satisfaccion_barrio' = 'Vínculos territoriales';
+# 
+#             'ayuda_economica' = 'Redes sociales';
+#             'comportamiento_prosocial' = 'Redes sociales';
+#             'confianza_inter' = 'Redes sociales';
+# 
+#             'conf_inst_pol' = 'Confianza en instituciones';
+# 
+#             'pp_politica' = 'Participación y actitudes políticas';
+#             'auto_efic' = 'Participación y actitudes políticas';
+#             'int_pol' = 'Participación y actitudes políticas';
+# 
+#             'pref_autor' = 'Preferencia por autoritarismo';
+# 
+#             'just_distrib' = 'Justicia distributiva';
+#             "
+#             )
+# 
+# sjmisc::frq(df_long$dimension)
+# 
+# df_long$area <-
+# car::recode(df_long$dimension, "
+#             'Seguridad pública'  = 'Area horizontal';
+#             'Vínculos territoriales' = 'Area horizontal';
+#             'Redes sociales' = 'Area horizontal';
+# 
+#             'Confianza en instituciones' = 'Area vertical';
+#             'Participación y actitudes políticas' = 'Area vertical';
+#             'Preferencia por autoritarismo' = 'Area vertical';
+#             'Justicia distributiva' = 'Area vertical'
+#             "
+#             )
+# 
+# df_long_sexo<-
+# df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
+#   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue,levels=sexo) %>%
+#   mutate(category="Sexo")
+# 
+# df_long_bivariate<- bind_rows(df_long_sexo,df_long_cine) %>% select(Ola,category,everything())
+# save(df_long_bivariate,file = "data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
+# load("data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
 
-output$descripcion_bivariado <- renderUI({
-  definiciones <- list(
-    "Cohesión general" = "Partimos de una definición mínima de cohesión social que incluye 'tanto a las interacciones verticales como horizontales entre los miembros de la sociedad, caracterizado por un conjunto de actitudes y normas que incluyen la confianza, el sentido de pertenencia y la voluntad de participar y ayudar, así como sus manifestaciones conductuales' (Chan et al., 2006, p. 290).",
-    "Cohesión horizontal" = "La dimensión horizontal está dirigida hacia la cohesión dentro de la sociedad civil. Incluye indicadores sobre seguridad pública y confianza interpersonal",
-    "Cohesión vertical" = "La dimensión vertical está dirigida hacia la cohesión entre los ciudadanos (o sociedad civil) y el Estado. Incluye indicadores sobre confianza en instituciones, actitudes hacia la democracia y justicia redistributiva.",
-    "Confianza Interpersonal" = "Es el nivel de confianza que las personas tienen en otras personas, es decir, las expectativas positivas que una persona tiene sobre las intenciones o comportamientos de otra.",
-    "Seguridad Pública" = "Incluye indicadores tanto objetivos como subjetivos de seguridad urbana.",
-    "Confianza en las Instituciones" = "El grado de confianza en entidades como el gobierno, policía o sistema judicial.",
-    "Actitudes a la Democracia" = "La valoración y apoyo que se le da al sistema democrático.",
-    "Justicia Redistributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad.",
-    "Seguridad Objetiva"= "Frecuencia en que las personas han sido víctimas de algún delito en el último año (LAPOP)",
-    "Seguridad Subjetiva"= "Percepción de seguridad en el barrio (LAPOP)", 
-    "Confianza en el Congreso"= "Nivel de confianza en el poder legislativo del país (LAPOP)",
-    "Confianza Partidos Políticos"= "Nivel de confianza en los partidos políticos del país (LAPOP)",
-    "Confianza Poder Judicial"= "Nivel de confianza en las cortes de justicia del país (LAPOP)",
-    "Apoyo Democracia" = "Acuerdo con que la democracia es la mejor forma de gobierno (LAPOP)",
-    "Satisfacción Democracia"= "Nivel de satisfacción con la forma en que funciona la democracia en el país (LAPOP)",
-    "Orgullo Nacional"= "Nivel se orgullo que siente una persona de pertenecer a su país (WVS)",
-    "Importancia Igualdad de Ingresos" = "Nivel de acuerdo con que el Estado debe tomar acciones para mejorar la distribución de ingresos en el país (LAPOP)",
-    "Importancia del Trabajo Duro" = "Importancia que se le otorga al trabajo duro para surgir en la vida (WVS)",
-    "Percepción de Corrupción" = "Percepción sobre el nivel de funcionarios públicos involucrado en actos de corrupación (LAPOP)",
-    "Interés en la Política" = "Frecuencia con que se habla de política con amigos o familiares (LAPOP)",
-    "Comportamiento Prosocial"= "Índice creado a partir de indicadores sobre acatamiento de normas sociales, como pagar impuestos o pagar en el pasaje en el trasporte público (WVS)",
-    "Desempleo" = "Porcentaje de la fuerza de trabajo que no se encuentra trabajando estando disponible para hacerlo (Banco Mundial)",
-    "Gender Inequality Index"= "Mide las desigualdades de género a nvel nacional en en dimensiones de salud reproductiva, participación política y participación labora. Valores más cercanos a 1 indican mayor desigualdad (PNUD)",
-    "Gini Index" = "Mide la desigualdad en la distribución de los ingresos. 0 representa equidad perfecta, mientras 100 implica desigualdad perfecta (Banco Mundial)",
-    "Homicidios intencionales" = "Número de homicidios intencionales por cada 100.000 habitantes (Banco Mundial)",
-    "PIB per cápita (nominal)" = "Es el producto interno bruto divido por la población a mitad del año. Se encuentra expresado en dólares estadounidenses actuales (Banco Mundial)"
-    
-    
-  )
-  
-   x_var <- input$x_var
-  y_var <- input$y_var
+  dat_filtered <- reactive({
+    req(input$subdim_select, input$category_select)
 
-  # Busca las descripciones, si existen
-  x_desc <- definiciones[[x_var]]
-  y_desc <- definiciones[[y_var]]
+    ungroup(df_long_bivariate) %>%
+      dplyr::filter(
+        Subdimension == input$subdim_select,
+        category == input$category_select
+      ) %>%
+      dplyr::select(Ola, levels, Valor, Subdimension, category) %>%  # keep Valor
+      dplyr::mutate(
+        Ola = as.factor(Ola),
+        levels = as.factor(levels)
+      ) %>%
+      dplyr::arrange(Ola, levels)
+  })
 
-  # Texto alternativo si no hay descripción
-  if (is.null(x_desc)) x_desc <- "Descripción no disponible para esta variable."
-  if (is.null(y_desc)) y_desc <- "Descripción no disponible para esta variable."
+  output$plot_bivariado <- plotly::renderPlotly({
+    req(dat_filtered())
 
-  HTML(glue::glue("
-    <p><strong>{x_var}:</strong> {x_desc}</p>
-    <p><strong>{y_var}:</strong> {y_desc}</p>
-  "))
-})
-
-## Gráfico de barras ----
-
-output$bar_plot <- renderPlotly({
-  req(input$subdim_ranking)
-
-  # 1) Filter df_long by the selected dimensión (here using subdim)
-  df_long_for_barplot <- df_long %>%
-    dplyr::filter(subdim == input$subdim_ranking)
-
-  # Guardrails: column checks + data availability
-  req(all(c("wave","indicator","mean_score") %in% names(df_long_for_barplot)))
-  validate(
-    need(nrow(df_long_for_barplot) > 0, "No hay datos para la dimensión seleccionada.")
-  )
-  validate(
-    need(!all(is.na(df_long_for_barplot$mean_score)), 
-         "No hay valores disponibles (todo es NA) para esta selección.")
-  )
-
-  # 2) Optional ordering (waves ascending)
-  # df_long_for_barplot <- df_long_for_barplot %>%
-  #   dplyr::arrange(as.numeric(as.character(wave)), indicator)
-
-  # 3) Plotly grouped bars: x = wave, fill/color = indicator, y = mean_score
-  plot_ly(
-    data = df_long_for_barplot,
-    x = ~wave,
-    y = ~mean_score,
-    color = ~indicator,
-    type = "bar",
-    hoverinfo = "text",
-    text = ~paste0(
-      "Año: ", wave,
-      "<br>Indicador: ", indicator,
-      "<br>Promedio: ", round(mean_score, 2)
-    )
+   plotly::plot_ly(
+    dat_filtered(),
+    x = ~Ola,
+    y = ~Valor,
+    color = ~levels,
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(width = 2),
+    marker = list(size = 6)
   ) %>%
-    layout(
-      barmode = "group",
-      title = paste0("Promedios por año — ", input$subdim_ranking),
-      xaxis = list(title = "Año"),
-      yaxis = list(title = "Puntaje promedio (1–5 Likert)", range = c(1, 5), zeroline = FALSE),
-      legend = list(title = list(text = "Indicador")),
-      margin = list(b = 80)
+    plotly::layout(
+      title = paste0("Subdimension: ", input$subdim_select,
+                     " | Category: ", input$category_select),
+      xaxis = list(title = "Ola"),
+      yaxis = list(title = "Valor")
     )
-})
-
-
-output$descripcion_barras <- renderUI({
-  definiciones <- list(
-    "Cohesión General" = "Partimos de una definición mínima de cohesión social que incluye 'tanto a las interacciones verticales como horizontales entre los miembros de la sociedad, caracterizado por un conjunto de actitudes y normas que incluyen la confianza, el sentido de pertenencia y la voluntad de participar y ayudar, así como sus manifestaciones conductuales' (Chan et al., 2006, p. 290).",
-    "Cohesión Horizontal" = "La dimensión horizontal está dirigida hacia la cohesión dentro de la sociedad civil. Incluye indicadores sobre seguridad pública y confianza interpersonal.",
-    "Cohesión Vertical" = "La dimensión vertical está dirigida hacia la cohesión entre los ciudadanos (o sociedad civil) y el Estado. Incluye indicadores sobre confianza en instituciones, actitudes hacia la democracia y justicia redistributiva.",
-    "Confianza Interpersonal" = "Es el nivel de confianza que las personas tienen en otras personas, es decir, las expectativas positivas que una persona tiene sobre las intenciones o comportamientos de otra.",
-    "Seguridad Pública" = "Incluye indicadores tanto objetivos como subjetivos de seguridad urbana.",
-    "Confianza en Instituciones" = "El grado de confianza en entidades como el gobierno, policía o sistema judicial.",
-    "Actitud hacia la Democracia" = "La valoración y apoyo que se le da al sistema democrático.",
-    "Justicia Redistributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad."
-  )
-  
-  texto <- definiciones[[variable_seleccionada()]]
-  
-  HTML(glue::glue("<p><strong>{variable_seleccionada()}:</strong> {texto}</p>"))
-})
+  })
 
 ```
