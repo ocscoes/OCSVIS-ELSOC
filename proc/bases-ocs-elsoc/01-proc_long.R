@@ -933,6 +933,9 @@ glimpse(db)
 sjPlot::view_df(db,
                 show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
 
+db_madre <- db
+
+save(db_madre, file = here ("data/bases-vis-elsoc/db_madre.RData"))
 
 # 4. Final data -----------------------------------------------------------
 
