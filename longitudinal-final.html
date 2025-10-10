@@ -70,7 +70,7 @@ ul.task-list li input[type="checkbox"] {
         
       </div>
     </div>
-<div id="dashboard-collapse" class="navbar-collapse collapse"><ul class="navbar-nav navbar-nav-scroll me-auto" role="tablist"><li class="nav-item" role="presentation"><a id="tab-inicio" class="nav-link active" data-bs-toggle="tab" role="tab" data-bs-target="#inicio" data-scrolling="false" href="#inicio" aria-controls="inicio" aria-selected="true"><span class="nav-link-text">Inicio</span></a></li><li class="nav-item" role="presentation"><a id="tab-análisis-longitudinal" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#análisis-longitudinal" data-scrolling="false" href="#análisis-longitudinal" aria-controls="análisis-longitudinal" aria-selected="false"><span class="nav-link-text">Análisis Longitudinal</span></a></li><li class="nav-item" role="presentation"><a id="tab-ranking" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#ranking" data-scrolling="false" href="#ranking" aria-controls="ranking" aria-selected="false"><span class="nav-link-text">Ranking</span></a></li><li class="nav-item" role="presentation"><a id="tab-análisis-bivariado" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#análisis-bivariado" data-scrolling="false" href="#análisis-bivariado" aria-controls="análisis-bivariado" aria-selected="false"><span class="nav-link-text">Análisis Bivariado</span></a></li><li class="nav-item" role="presentation"><a id="tab-server" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#server" data-scrolling="false" href="#server" aria-controls="server" aria-selected="false"><span class="nav-link-text">Server</span></a></li></ul><div class="quarto-dashboard-links"><a class="quarto-dashboard-link" href="https://github.com/ocscoes/OCSVIS-ELSOC" target="_blank"><i class="bi bi-github"></i></a><a class="quarto-dashboard-link" href="https://ocs-coes.netlify.app" target="_blank"><i class="bi bi-globe"></i></a></div></div></div>
+<div id="dashboard-collapse" class="navbar-collapse collapse"><ul class="navbar-nav navbar-nav-scroll me-auto" role="tablist"><li class="nav-item" role="presentation"><a id="tab-inicio" class="nav-link active" data-bs-toggle="tab" role="tab" data-bs-target="#inicio" data-scrolling="false" href="#inicio" aria-controls="inicio" aria-selected="true"><span class="nav-link-text">Inicio</span></a></li><li class="nav-item" role="presentation"><a id="tab-análisis-longitudinal" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#análisis-longitudinal" data-scrolling="false" href="#análisis-longitudinal" aria-controls="análisis-longitudinal" aria-selected="false"><span class="nav-link-text">Análisis Longitudinal</span></a></li><li class="nav-item" role="presentation"><a id="tab-ranking" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#ranking" data-scrolling="false" href="#ranking" aria-controls="ranking" aria-selected="false"><span class="nav-link-text">Ranking</span></a></li><li class="nav-item" role="presentation"><a id="tab-análisis-bivariado" class="nav-link" data-bs-toggle="tab" role="tab" data-bs-target="#análisis-bivariado" data-scrolling="false" href="#análisis-bivariado" aria-controls="análisis-bivariado" aria-selected="false"><span class="nav-link-text">Análisis Bivariado</span></a></li></ul><div class="quarto-dashboard-links"><a class="quarto-dashboard-link" href="https://github.com/ocscoes/OCSVIS-ELSOC" target="_blank"><i class="bi bi-github"></i></a><a class="quarto-dashboard-link" href="https://ocs-coes.netlify.app" target="_blank"><i class="bi bi-globe"></i></a></div></div></div>
 </nav>
 </header>
 <div class="page-layout-custom quarto-dashboard-content bslib-gap-spacing html-fill-container bslib-page-fill quarto-dashboard-pages">  
@@ -165,7 +165,7 @@ grid-auto-rows: minmax(0, 1fr);">
 <div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
 <div class="card-body html-fill-item html-fill-container">
 <div class="cell-output-display html-fill-item html-fill-container">
-<div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item html-fill-container" id="subdims_plot" style="width:100%;height:400px;"></div>
+<div class="plotly html-widget html-widget-output shiny-report-size shiny-report-theme html-fill-item html-fill-container" id="subdims_plot" style="width:100%;height:800px;"></div>
 </div>
 </div>
 <bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
@@ -181,16 +181,20 @@ grid-auto-rows: minmax(0, 1fr);">
 <div class="row">
 <div class="col-sm-6">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="subdims_from_area_v-label" for="subdims_from_area_v">Área vertical:</label>
+<label class="control-label" id="subdims_from_area_v-label" for="subdims_from_area_v">
+<span style="font-weight:bold; font-size:18px;">Área vertical:</span>
+</label>
 <div>
 <select class="shiny-input-select form-control" id="subdims_from_area_v" multiple="multiple"></select>
-<script type="application/json" data-for="subdims_from_area_v" data-eval="[&quot;onInitialize&quot;]">{"placeholder":"Elige hasta 4 elementos...","maxItems":4,"plugins":["remove_button","selectize-plugin-a11y"],"onInitialize":"\n            function() {\n              var self = this;\n              // Delegado sobre el contenedor de ESTE selectize\n              this.$control.on('mousedown', '.item', function(e){\n                var value = $(this).attr('data-value');\n                if (!value) return;\n                self.removeItem(value, false);  \n                e.preventDefault();\n                e.stopImmediatePropagation();\n                return false;\n              });\n            }\n          "}</script>
+<script type="application/json" data-for="subdims_from_area_v" data-eval="[&quot;onInitialize&quot;]">{"placeholder":"Elige hasta 4 elementos...","maxItems":4,"plugins":["remove_button","selectize-plugin-a11y"],"onInitialize":"\n            function() {\n              var self = this;\n              this.$control.on('mousedown', '.item', function(e){\n                var value = $(this).attr('data-value');\n                if (!value) return;\n                self.removeItem(value, false);\n                e.preventDefault();\n                e.stopImmediatePropagation();\n                return false;\n              });\n            }\n          "}</script>
 </div>
 </div>
 </div>
 <div class="col-sm-6">
 <div class="form-group shiny-input-container">
-<label class="control-label" id="subdims_from_area_h-label" for="subdims_from_area_h">Área horizontal:</label>
+<label class="control-label" id="subdims_from_area_h-label" for="subdims_from_area_h">
+<span style="font-weight:bold; font-size:18px;">Área horizontal:</span>
+</label>
 <div>
 <select class="shiny-input-select form-control" id="subdims_from_area_h" multiple="multiple"></select>
 <script type="application/json" data-for="subdims_from_area_h" data-eval="[&quot;onInitialize&quot;]">{"placeholder":"Elige hasta 4 elementos...","maxItems":4,"plugins":["remove_button","selectize-plugin-a11y"],"onInitialize":"\n            function() {\n              var self = this;\n              this.$control.on('mousedown', '.item', function(e){\n                var value = $(this).attr('data-value');\n                if (!value) return;\n                self.removeItem(value, false);\n                e.preventDefault();\n                e.stopImmediatePropagation();\n                return false;\n              });\n            }\n          "}</script>
@@ -422,6 +426,9 @@ grid-auto-rows: minmax(0, 1fr);">
         <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
     </span>
 </bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
+<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden html-fill-item html-fill-container">
+
+</div>
 </div>
 </div>
 </div></div><aside id="bslib-sidebar-3" class="sidebar html-fill-container html-fill-item"><div class="html-fill-item html-fill-container">
@@ -528,13 +535,6 @@ bslib.Sidebar.initCollapsibleAll()
 </script>
 </div>
 </div>
-<div id="server" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container" data-orientation="rows" aria-labelledby="tab-server">
-<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: ; grid-auto-columns: minmax(0, 1fr);">
-<div id="3ade8a4a-fb1d-4a6c-8409-ac45482d5fc9" class="hidden html-fill-item html-fill-container">
-
-</div>
-</div>
-</div>
 </div>
 <p>
 <script type="application/shiny-prerendered" data-context="server-start">
@@ -561,6 +561,7 @@ library(sjlabelled)
 library(V8)
 library(shinythemes)
 library(htmltools)
+library(tibble)
 options(shiny.usecairo = TRUE)
 
 shinyWidgets:::html_dependency_picker_bs(
@@ -623,7 +624,9 @@ UP_LEVEL_OPTION_VALUE <- "__VOLVER__" # Nuevo valor único para la opción "subi
 <script type="application/shiny-prerendered" data-context="server">
 # base longitudinal
 
+# load("data/bases-vis-elsoc/df_long_jerarquica.RData")
 load("data/bases-vis-elsoc/db_categ_ola.RData")
+
 
 db_categ <- db_categ_ola %>% select(ola,valor,starts_with("prop_")) %>% filter(valor=="Alto")
 names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
@@ -962,41 +965,33 @@ observeEvent(input$subdims_from_area_h, {
 
 # --- Render de la descripción ---
 output$descripcion_longitudinal <- renderUI({
-  sel <- last_selected()
-
-  # Si no hay ninguna variable seleccionada en ningún selector, no mostrar nada
   sel_v <- input$subdims_from_area_v %||% character(0)
   sel_h <- input$subdims_from_area_h %||% character(0)
-  
+
+  # Si no hay ninguna variable seleccionada en ningún selector, no mostrar nada
   if (length(sel_v) == 0 && length(sel_h) == 0) {
-    return(NULL)  # No mostrar nada cuando ambos selectores están vacíos
+    return(NULL)
   }
 
-  # Fallback si no hay nada aún seleccionado
-  if (is.null(sel) || identical(sel, "")) {
-    return(
-      div(
-        style = "margin-top:8px;",
-        tags$em("Selecciona un elemento en los selectores para ver su descripción aquí.")
-      )
-    )
-  }
+  # Orden combinado: primero las del selector vertical, luego las del horizontal (sin duplicar)
+  sel_all <- unique(c(sel_v, sel_h))
 
-  # Buscar descripción exacta por nombre de subdimensión
-  desc <- definiciones[[sel]]
+  # Construimos una "tarjeta" por cada selección
+  cards <- lapply(sel_all, function(nm) {
+    desc <- definiciones[[nm]]
+    if (is.null(desc) || is.na(desc) || identical(desc, "")) {
+      desc <- "No tengo una descripción asociada a esta subdimensión todavía."
+    }
 
-  # Si no hay descripción exacta, mensaje de ausencia
-  if (is.null(desc)) {
-    desc <- "No tengo una descripción asociada a esta subdimensión todavía."
-  }
-
-  tagList(
     tags$div(
       style = "margin-top:8px; padding:10px; border-left:4px solid #1f77b4; background:#f7f7f7; border-radius:6px;",
-      tags$strong(sel),
+      tags$strong(nm),
       tags$p(style = "margin:6px 0 0 0;", desc)
     )
-  )
+  })
+
+  # Devolvemos todas las tarjetas apiladas
+  tagList(cards)
 })
 
 
@@ -1035,27 +1030,40 @@ output$subdims_plot <- plotly::renderPlotly({
       xaxis  = list(title = "Ola", dtick = 1),
       yaxis = list(title = "Porcentaje", range = c(0, 100), ticksuffix = "%"),
       showlegend = TRUE,
-      annotations = list(
-      list(
-        text = "(1): 'Alto' agrupa las categorías 'de acuerdo' + 'muy de acuerdo'",
-        xref = "paper", yref = "paper",
-        x = 0, y = -0.18,
-        xanchor = "left", yanchor = "top",
-        align = "left",
-        showarrow = FALSE,
-        font = list(size = 12, color = "gray40")
+      legend = list(
+        orientation = "v",         # leyenda vertical
+        xanchor = "right",
+        yanchor = "bottom",
+        x = 1.02,                  # más cerca del gráfico
+        y = -0.27,
+        bgcolor = "rgba(255,255,255,0.8)",
+        bordercolor = "gray70",
+        borderwidth = 0.5,
+        font = list(size = 12),
+        tracegroupgap = 2,         # reduce el espacio entre grupos
+        itemwidth = 30             # <-- controla el ancho del bloque de leyenda
       ),
-      list(
-        text = "(2): Los puntos ausentes en el gráfico significan que la variable no tiene datos disponibles para ese año.",
-        xref = "paper", yref = "paper",
-        x = 0, y = -0.24,
-        xanchor = "left", yanchor = "top",
-        align = "left",
-        showarrow = FALSE,
-        font = list(size = 12, color = "gray40")
-      )
-    ),
-    margin = list(b = 150)
+      annotations = list(
+        list(
+          text = "(1): 'Alta' agrupa las categorías 'de acuerdo' + 'muy de acuerdo'",
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.18,
+          xanchor = "left", yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        ),
+        list(
+          text = "(2): Los puntos ausentes en el gráfico significan que la variable no tiene datos disponibles para ese año.",
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.24,
+          xanchor = "left", yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        )
+      ),
+      margin = list(b = 150, r = 60) # margen derecho más estrecho
     )
 })
  
