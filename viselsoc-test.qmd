@@ -1,0 +1,1127 @@
+---
+title: "Cohesión Social en Chile"
+format:
+  dashboard:
+   nav-buttons:
+     - icon: github
+       href: https://github.com/ocscoes/OCSVIS-ELSOC
+       target: _blank
+     - icon: globe
+       href: https://ocs-coes.netlify.app
+       target: _blank
+logo: "www/images/ocs-negro.png"
+server: shiny
+resources: 
+ - www
+ - css
+---
+
+```{r}
+#| context: setup
+#| include: false
+
+## URLs
+# logo_file <- "https://github.com/ocscoes/OCS-COES/raw/master/app/www/images/ocs-21.png"
+# url_ocs   <- "https://ocs-coes.netlify.app/"
+
+## Cargar librerías
+library(tidyverse)
+library(sf)
+#library(leaflet)
+library(plotly)
+library(shinyjs)
+library(shinyWidgets)
+library(shinyEffects)
+library(shinydashboardPlus)
+library(shinydashboard)
+library(ggrepel)
+library(cowplot)
+#library(magick)
+#library(highcharter)
+library(fontawesome)
+library(scales)
+library(ggthemes)
+library(RColorBrewer)
+# library(hrbrthemes)
+library(sjlabelled)
+library(V8)
+# library(Cairo)
+library(shinythemes)
+library(htmltools)
+options(shiny.usecairo = TRUE)
+
+shinyWidgets:::html_dependency_picker_bs(
+  theme = bslib::bs_theme(version = 5)
+)
+
+## Cargar datos
+
+load("data/shiny-latam/world_data.rdata")
+
+if (!inherits(world_data, "sf")) {
+  world_data <- st_as_sf(world_data)
+}
+
+
+unique_years <- unique(world_data$Ola)
+step_size <- unique(diff(unique_years))
+
+# Bivariado
+
+load(file = "data/shiny-latam/base_shiny_completa.rdata")
+
+df_bivariado <- df %>% filter(País!="Bahamas" & País !="Grenada" & País != "Suriname",
+                              !is.nan(Valor))
+
+unique_years_bi <- unique(df$Ola)
+step_size_bi <- unique(diff(unique_years))
+
+# Cálculo de los rangos mínimos y máximos para cada variable
+range_values <- df %>%
+  group_by(Variable) %>%
+  summarise(min_val = min(Valor, na.rm = TRUE),
+            max_val = max(Valor, na.rm = TRUE))
+
+# Base con jerarquías
+
+load(file = "data/shiny-latam/base_shiny_indicadores.rdata")
+
+df <- df_indicadores %>% filter(País!="Bahamas" & País !="Grenada" & País != "Suriname",
+                                Ola %% 2 == 0)
+
+unique_years_bi <- unique(df$Ola)
+step_size_bi <- unique(diff(unique_years))
+
+all_indices <- unique(df$Indice) # <-- Cambia 'Indice' si tu columna se llama diferente
+all_countries <- unique(df$País) # <-- Cambia 'País' si tu columna se llama diferente
+
+PROMEDIO_GENERAL_OPTION <- "Promedio General"
+UP_LEVEL_OPTION_VALUE <- "__VOLVER__" # Nuevo valor único para la opción "subir de nivel"
+
+
+# Cálculo de los rangos mínimos y máximos para cada variable
+# range_values <- df %>%
+#   group_by(Variable) %>%
+#   summarise(min_val = min(Valor, na.rm = TRUE),
+#             max_val = max(Valor, na.rm = TRUE))
+
+load("data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
+```
+
+```{=HTML}
+
+
+<div class="logo-bloque">
+
+<a href="https://ocs-coes.com/" target="_blank">
+  <img src="www/img/OCS-COES-02.png" class="centered-img" width="15%">
+</a>
+
+
+</div>
+
+<style>
+.centered-img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+```
+
+# Inicio
+
+**Elige una de las pestañas disponibles para realizar el análisis**:
+
+
+  -   **_Longitudinal_**: En este apartado se comparan los promedios de las dimensiones y subdimensiones a través de un gráfico de líneas histórico. Para proyectar los análisis, debes seleccionar un elemento a visualizar.
+  
+  -   **_Ranking_**: Sigue la misma lógica que la sección mapa, pero mostrando un ranking ordenado por dimensiones y subdimensiones, para cada ola disponible. 
+
+  -   **_Bivariado_**: Aquí se encuentran dos selectores entre los que encontrarás las dimensiones y subdimensiones, además de algunas variables de caracterización sociodemográficas.  
+
+Todas los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
+  
+Más información sobre las fuentes de datos, la selección de indicadores y la construcción de los índices <a href="https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html" target="_blank">aquí</a>.
+
+```{=HTML}
+
+<h3 class="logo-title">Instituciones patrocinantes</h3>
+
+<div class="logo-links">
+  <a href="https://anid.cl" target="_blank">
+    <img src="www/img/anid.png" alt="ANID">
+  </a>
+  <a href="https://uchile.cl" target="_blank">
+    <img src="www/img/uch.png" alt="UChile">
+  </a>
+  <a href="https://www.uc.cl" target="_blank">
+    <img src="www/img/puc.png" alt="PUC">
+  </a>
+  <a href="https://www.udp.cl" target="_blank">
+    <img src="www/img/udp.png" alt="UDP">
+  </a>
+  <a href="https://www.uai.cl" target="_blank">
+    <img src="www/img/uai.png" alt="UAI">
+  </a>
+</div>
+
+<style>
+.logo-title {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem; /* controla espacio entre título y logos */
+}
+
+.logo-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem; /* espacio entre logos */
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.logo-links img {
+  height: 60px;
+  transition: transform 0.2s ease;
+}
+</style>
+```
+
+# Análisis Longitudinal
+
+
+## {.sidebar width="20%"}
+
+```{r}
+
+tagList(
+  fluidRow(
+    column(
+      6,
+      selectizeInput(
+        "subdims_from_area_v",
+        tags$span("Área vertical:", style = "font-weight:bold; font-size:18px;"),
+        choices = NULL,
+        multiple = TRUE,
+        options = list(
+          placeholder = "Elige hasta 4 elementos...",
+          maxItems = 4,
+          plugins = list("remove_button"),
+          onInitialize = I("
+            function() {
+              var self = this;
+              this.$control.on('mousedown', '.item', function(e){
+                var value = $(this).attr('data-value');
+                if (!value) return;
+                self.removeItem(value, false);
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+              });
+            }
+          ")
+        )
+      )
+    ),
+    column(
+      6,
+      selectizeInput(
+        "subdims_from_area_h",
+        tags$span("Área horizontal:", style = "font-weight:bold; font-size:18px;"),
+        choices = NULL,
+        multiple = TRUE,
+        options = list(
+          placeholder = "Elige hasta 4 elementos...",
+          maxItems = 4,
+          plugins = list("remove_button"),
+          onInitialize = I("
+            function() {
+              var self = this;
+              this.$control.on('mousedown', '.item', function(e){
+                var value = $(this).attr('data-value');
+                if (!value) return;
+                self.removeItem(value, false);
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return false;
+              });
+            }
+          ")
+        )
+      )
+    )
+  )
+)
+
+
+```
+
+```{r}
+uiOutput("descripcion_longitudinal")
+```
+
+## Gráfico
+
+```{r}
+ # plotlyOutput("longitudinal_plotly", height = "800px")
+plotlyOutput("subdims_plot", height = "800px")
+```
+
+
+
+# Ranking
+
+## {.sidebar width="25%"}
+
+```{r}
+tags$style(HTML("
+
+  .styled-slider .irs-bar {
+    background: transparent !important;
+  }
+
+.styled-slider .irs-handle {
+    background: #497abd !important;
+    border: 1px solid #1c7bbf !important;
+    width: 20px;
+    height: 20px;
+    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+    border: none;
+}
+"))
+
+shiny::selectInput(inputId ="subdim_ranking",label = "Selecciona una dimensión",
+                   choices = c("Confianza Interpersonal"="Interpersonal Trust"),
+                   selected = "Interpersonal Trust")
+```
+
+```{r}
+# CSS Personalizado para los botones
+tags$style(HTML("
+  #ranking-buttons .btn {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+    height: 100%;
+    width: 100%;
+    padding: 5px;
+    white-space: normal;
+    font-weight: 500;
+  }
+
+  #ranking-buttons .btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  #ranking-buttons .btn.active {
+    background-color:  #497abd;
+    color: white;
+    border-color: #00441b;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  #ranking-buttons .btn.active img {
+     filter: brightness(0) invert(1);
+  }
+"))
+
+# Contenedor de botones
+div(id = "ranking-buttons",
+    style = "display: flex; flex-wrap: wrap; gap: 6px;",
+  
+  lapply(1:8, function(i) {
+    btn_id <- paste0("btn_var", i)
+    btn_label <- c(
+      "Cohesión<br>General", 
+      "Cohesión<br>Horizontal", 
+      "Cohesión<br>Vertical",
+      "Confianza<br>Interpersonal", 
+      "Seguridad<br>Pública", 
+      "Confianza en<br>Instituciones",
+      "Actitud hacia<br>la Democracia", 
+      "Justicia<br>Redistributiva"
+    )[i]
+    
+
+    btn_icon <- c(
+      "cohesion-general.svg",
+      "cohesion-horizontal.svg",
+      "cohesion-vertical.svg",
+      "confianza-interpersonal.svg",       
+      "seguridad-publica.svg",             
+      "confianza-instituciones.svg",       
+      "actitud-democracia.svg",            
+      "justicia-distributiva.svg"          
+    )[i]
+    # --- FIN DE CAMBIOS ---
+    
+    btn_class <- "btn btn-light"
+    if (i == 1) {
+      btn_class <- "btn btn-light active"
+    }
+    
+ div(style = "
+        width: 48%;
+        height: 125px;
+        display: flex;
+        align-items: center;
+        justify-content: center;",
+      actionButton(
+        inputId = btn_id,
+        label = HTML(glue::glue(
+          '<div style="text-align:center; font-size:12px; line-height:1.1;">
+             <img src="www/img/{btn_icon}" width="35"><br>{btn_label}
+           </div>'
+        )),
+        class = "btn btn-light",
+        style = "width: 100%; height: 100%; padding: 5px;"
+      )
+    )
+  })
+)
+
+# JavaScript para gestionar la clase 'active' en los botones
+tags$script(HTML("
+  document.addEventListener('DOMContentLoaded', function() {
+    const buttonContainer = document.getElementById('ranking-buttons');
+    if (!buttonContainer) return;
+
+    buttonContainer.addEventListener('click', function(event) {
+        const button = event.target.closest('.action-button');
+        if (!button) return;
+
+        const allButtons = buttonContainer.querySelectorAll('.action-button');
+        allButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+    });
+  });
+"))
+```
+
+```{r barras-ui-render}
+uiOutput("descripcion_barras")
+```
+
+## Grafico de barras
+
+```{r barras-plot-output}
+plotlyOutput("bar_plot")
+```
+
+# Análisis Bivariado
+
+## {.sidebar width="20%"}
+
+```{r}
+
+tags$style(HTML("
+
+  .styled-slider .irs-bar {
+    background: transparent !important;
+  }
+
+.styled-slider .irs-handle {
+    background: #497abd !important;
+    border: 1px solid #1c7bbf !important;
+    width: 20px;
+    height: 20px;
+    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+    border: none;
+}
+"))
+sidebarPanel(
+  selectInput(
+    inputId = "subdim_select",
+    label = "Elige una subdimensión:",
+    choices = sort(unique(df_long_bivariate$Subdimension)),
+    selected = sort(unique(df_long_bivariate$Subdimension))[1]
+  ),
+  selectInput(
+    inputId = "category_select",
+    label = "Elige una categoría:",
+    choices = sort(unique(df_long_bivariate$category)),
+    selected = sort(unique(df_long_bivariate$category))[1]
+  )
+)
+```
+
+```{r}
+uiOutput("descripcion_bivariado")
+```
+
+## Gráfico
+
+```{r}
+plotlyOutput("plot_bivariado", height = "800px")
+```
+
+
+```{r server}
+#| context: server
+
+# base longitudinal
+
+# load("data/bases-vis-elsoc/df_long_jerarquica.RData")
+load("data/bases-vis-elsoc/db_categ_ola.RData")
+
+
+db_categ <- db_categ_ola %>% select(ola,valor,starts_with("prop_")) %>% filter(valor=="Alto")
+names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
+
+vars <- db_categ %>% 
+  ungroup () %>% 
+  select(
+    # seguridad_pub
+    seguridad_obj,seguridad_sub,
+    # vinculos_territ
+    sentido_pertenencia,satisfaccion_barrio,
+    # redes_sociales
+    comportamiento_prosocial,ayuda_economica,confianza_inter,
+    
+    conf_inst_pol, 
+    
+    # prac_acti_pol,  
+    pp_politica,auto_efic,int_pol,
+    
+    pref_autor,
+    
+    just_distrib
+    
+    ) %>% names()
+
+df_long <- db_categ %>%
+  group_by(ola) %>%
+  summarise(across(all_of(vars), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+  pivot_longer(-ola, names_to = "subdimension", values_to = "meanvalue") %>%
+  mutate(subdimension = factor(subdimension, levels = vars)) %>%
+  arrange(ola,subdimension)
+
+
+# df_long$subdimension <- NULL
+df_long$dimension <- NULL
+df_long$area <- NULL
+
+
+
+df_long$subdimension <- 
+car::recode(df_long$subdimension, "
+            'seguridad_obj'  = 'Seguridad objetiva';
+            'seguridad_sub' = 'Seguridad subjetiva';
+            
+            'sentido_pertenencia' = 'Sentido de pertenencia';
+            'satisfaccion_barrio' = 'Satisfacción con el barrio';
+            
+            'ayuda_economica' = 'Ayuda económica';
+            'comportamiento_prosocial' = 'Comportamiento prosocial';
+            'confianza_inter' = 'Confianza interpersonal';
+            
+            'conf_inst_pol' = 'Confianza en instituciones políticas';            
+
+            'pp_politica' = 'Participación política';
+            'auto_efic' = 'Autoeficacia política';
+            'int_pol' = 'Interés en política';   
+            
+            'pref_autor' = 'Preferencia por autoritarismo';
+            
+            'just_distrib' = 'Justicia redistributiva';
+            "
+            )
+
+df_long$dimension <- 
+car::recode(df_long$subdimension, "
+            'Seguridad objetiva'  = 'Seguridad pública';
+            'Seguridad subjetiva' = 'Seguridad pública';
+            
+            'Sentido de pertenencia' = 'Vínculos territoriales';
+            'Satisfacción con el barrio' = 'Vínculos territoriales';
+            
+            'Ayuda económica' = 'Redes sociales';
+            'Comportamiento prosocial' = 'Redes sociales';
+            'Confianza interpersonal' = 'Redes sociales';
+            
+            'Confianza en instituciones políticas' = 'Confianza en instituciones';            
+
+            'Participación política' = 'Participación y actitudes políticas';
+            'Autoeficacia política' = 'Participación y actitudes políticas';
+            'Interés en política' = 'Participación y actitudes políticas';   
+            
+            'Preferencia por autoritarismo' = 'Preferencias por autoritarismo';
+            
+            'Justicia redistributiva' = 'Justicia distributiva';
+            "
+            )
+
+sjmisc::frq(df_long$dimension)
+
+df_long$area <- 
+car::recode(df_long$dimension, "
+            'Seguridad pública'  = 'Area horizontal';
+            'Vínculos territoriales' = 'Area horizontal';
+            'Redes sociales' = 'Area horizontal';
+            
+            'Confianza en instituciones' = 'Area vertical';            
+            'Participación y actitudes políticas' = 'Area vertical';
+            'Preferencias por autoritarismo' = 'Area vertical';
+            'Justicia distributiva' = 'Area vertical'
+            "
+            )
+
+sjmisc::frq(df_long$area)
+
+df_long<-
+df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
+  rename(Ola=ola, Areas=area, Subdimension=subdimension, Dimension=dimension, Valor=meanvalue_sdim)
+
+# Crear valor de las dimensiones 
+df_long <- df_long %>%
+  group_by(Ola, Subdimension) %>%
+  mutate(Valor = mean(Valor, na.rm = TRUE)) %>%
+  ungroup()
+
+# 2) Calcula el promedio por Dimensión a partir de las Subdimensiones (igual peso por subdimensión)
+dim_means <- df_long %>%
+  distinct(Ola, Dimension, Subdimension, Valor) %>%     # evita sobre-representar subdimensiones con más ítems
+  group_by(Ola, Dimension) %>%
+  summarise(valor_dim = mean(Valor, na.rm = TRUE), .groups = "drop")
+
+# 3) Adjunta 'valor_dim' al df original
+df_long <- df_long %>%
+  left_join(dim_means, by = c("Ola", "Dimension"))
+
+# 4) Se genera una base nueva donde se apilan los promedios de las dimensiones en las subdimensiones
+
+# Base con valores por subdimensión (ya existentes)
+df_sub <- df_long %>%
+  select(Ola, Subdimension, Dimension, Areas, Valor)
+
+# Base con valores por dimensión (nuevas filas)
+df_dim <- df_long %>%
+  distinct(Ola, Dimension, Areas, valor_dim) %>%
+  rename(Subdimension = Dimension, Valor = valor_dim)
+
+# Unimos ambas bases (subdimensiones + dimensiones)
+df_comb <- bind_rows(df_sub, df_dim) %>%
+  arrange(Ola, Areas, Dimension, Subdimension, Valor)
+
+# pasar valores a %
+df_comb <- df_comb %>% dplyr::mutate(Valor = Valor * 100)
+
+drop_subdims <- c(
+  "Confianza en instituciones políticas",
+  "Preferencia por autoritarismo",
+  "Justicia redistributiva"
+)
+
+df_comb <- df_comb %>%
+  dplyr::filter(!Subdimension %in% drop_subdims)
+
+# Longitudinal (Author: Tomás)-----------------------------------------------------
+
+# 3) Plot: SOLO subdimensiones (líneas por subdimensión) usando 'Ola'
+
+# Paleta fija posicional (1º..4º considerando ambos selectores)
+my_colors <- c("#1f77b4", "#2ca02c", "purple", "orange")
+no_real_choice <- function(x) is.null(x) || length(x) == 0
+
+# Evita el patrón "a:b" con vectores (usa seq_len)
+safe_slice <- function(n, max_n) seq_len(min(length(n), max_n))
+
+# --- Optgroups: lista "Dimensión" = c(subdims,...) con NA agrupadas ---
+make_grouped_choices <- function(df, na_group = "Dimensiones") {
+  df %>%
+    dplyr::distinct(Dimension, Subdimension) %>%
+    dplyr::filter(!is.na(Subdimension)) %>%
+    dplyr::mutate(
+      Dimension = if (is.factor(Dimension)) {
+        forcats::fct_na_value_to_level(Dimension, level = na_group)
+      } else {
+        tidyr::replace_na(Dimension, na_group)
+      },
+      Dimension    = as.character(Dimension),
+      Subdimension = as.character(Subdimension)
+    ) %>%
+    dplyr::arrange(Dimension, Subdimension) %>%
+    { split(.$Subdimension, .$Dimension) }
+}
+
+# --- Paleta global por orden combinado (vertical + horizontal) ---
+build_color_map <- function(sel_v, sel_h) {
+  sel_v  <- if (is.null(sel_v)) character(0) else sel_v
+  sel_h  <- if (is.null(sel_h)) character(0) else sel_h
+  sel_all <- c(sel_v, sel_h)
+  if (length(sel_all) == 0) return(setNames(character(0), character(0)))
+
+  sel_all <- sel_all[!duplicated(sel_all)]
+  idx <- seq_len(min(length(sel_all), length(my_colors)))  # <- evita a:b con vector
+  setNames(my_colors[idx], sel_all[idx])
+}
+
+# --- Añade trazas de un área usando df_comb ---
+add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_map) {
+  if (no_real_choice(selected_subdims)) return(p)
+
+  keep <- intersect(selected_subdims, names(color_map))
+  if (length(keep) == 0) return(p)
+
+  dplot <- df_comb %>%
+    dplyr::filter(Areas == area_label, Subdimension %in% keep) %>%
+    dplyr::group_by(Ola, Subdimension) %>%
+    dplyr::summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::arrange(Ola)
+
+  if (nrow(dplot) == 0) return(p)
+
+  for (sd in keep) {
+    df_i <- dplyr::filter(dplot, Subdimension == sd)
+    if (nrow(df_i) == 0) next
+
+    p <- p %>% plotly::add_trace(
+      data  = df_i,
+      x     = ~Ola, y = ~Valor,
+      type  = "scatter", mode = "lines+markers",
+      name  = paste0(sd, " — ", area_label),
+      legendgroup = sd,
+      line   = list(width = 3, color = unname(color_map[[sd]]), dash = line_dash),
+      marker = list(size = 8, color = unname(color_map[[sd]])),
+      hovertemplate = paste0(
+        "<b>Ola:</b> %{x}",
+        "<br><b>Área:</b> ", area_label,
+        "<br><b>Elemento seleccionado:</b> ", sd,
+        "<br><b>Valor:</b> %{y:.2f}<extra></extra>"
+      )
+    )
+  }
+  p
+}
+
+# --- SELECTORES (solo df_comb) ---
+observe({
+  choices_v <- df_comb %>%
+    dplyr::filter(Areas == "Area vertical") %>%
+    dplyr::select(Dimension, Subdimension) %>%
+    make_grouped_choices(na_group = "Dimensiones")
+
+  updateSelectizeInput(session, "subdims_from_area_v",
+                       choices = choices_v, selected = NULL)
+})
+
+observe({
+  choices_h <- df_comb %>%
+    dplyr::filter(Areas == "Area horizontal") %>%
+    dplyr::select(Dimension, Subdimension) %>%
+    make_grouped_choices(na_group = "Dimensiones")
+
+  updateSelectizeInput(session, "subdims_from_area_h",
+                       choices = choices_h, selected = NULL)
+})
+
+# --- DEFINICIONES DE VARIABLES DE SELECTORES ----
+definiciones <- c(
+  "Seguridad pública" = "Incluye indicadores tanto objetivos como subjetivos que miden el nivel de seguridad de los individuos.",
+  "Confianza en instituciones" = "Considera el grado de confianza que tienen los sujetos hacia las instituciones de orden político de la sociedad, tales como el Gobierno, el Congreso y los partidos políticos.",
+  "Vínculos territoriales" = "Mide el sentido de pertenencia y la satisfacción de los individuos con su barrio de residencia.",
+  "Redes sociales" = "Aborda las interacciones que evidencian la fortaleza y/o debilidad del vínculo social.",
+  "Participación y actitudes políticas" = "Mide la participación en actividades de índole política y el interés hacia ella.",
+  "Preferencias por autoritarismo" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave..",
+  "Justicia distributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
+
+  # --- Subdimensiones (las que efectivamente aparecen en los selectores) ---
+  "Participación política" = "Participación en actividades políticas como firmar peticiones, asistir a marchas o participar en huelgas.",
+  "Autoeficacia política" = "La percepción sobre la capacidad personal de influir en el proceso político a través del voto.",
+  "Interés en política" = "El nivel de interés, conversación e información sobre temas políticos.",
+  "Seguridad objetiva" = "Medidas objetivas de criminalidad como frecuencia de peleas callejeras, robos y asaltos en el barrio.",
+  "Seguridad subjetiva" = "Percepción personal sobre la seguridad y el grado de satisfacción con las medidas de seguridad.",
+  "Sentido de pertenencia" = "El grado de identificación e integración con el barrio de residencia.",
+  "Satisfacción con el barrio" = "Evaluación de las características sociales del barrio (amigable, sociable, cordial, colaborador).",
+  "Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista.",
+  "Comportamiento prosocial" = "Participación en actividades comunitarias como reuniones públicas y la participación en voluntariado.",
+  "Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido."
+)
+
+# --- Estado previo y última selección (compartido entre ambos selectores) ---
+prev_sel <- reactiveValues(v = character(0), h = character(0))
+last_selected <- reactiveVal(NULL)
+
+# Cuando cambia el selector VERTICAL
+observeEvent(input$subdims_from_area_v, {
+  cur  <- input$subdims_from_area_v %||% character(0)
+  prev <- prev_sel$v
+
+  added   <- setdiff(cur, prev)     # ítems agregados
+  removed <- setdiff(prev, cur)     # ítems eliminados
+
+  if (length(added) > 0) {
+    # Si se agregó algo, lo recién agregado es la última selección
+    last_selected(added[[1]])
+  } else if (length(removed) > 0) {
+    # Si se eliminó, toma el último que quedó en este selector (si queda alguno)
+    if (length(cur) > 0) {
+      last_selected(tail(cur, 1))
+    } else {
+      # Si este selector quedó vacío, verificar si el otro también está vacío
+      other_cur <- input$subdims_from_area_h %||% character(0)
+      if (length(other_cur) == 0) {
+        # Ambos selectores vacíos: limpiar la descripción
+        last_selected(NULL)
+      } else {
+        # El otro selector aún tiene valores: mantener su última selección
+        last_selected(tail(other_cur, 1))
+      }
+    }
+  }
+  prev_sel$v <- cur
+}, ignoreInit = TRUE, priority = 10)
+
+# Cuando cambia el selector HORIZONTAL
+observeEvent(input$subdims_from_area_h, {
+  cur  <- input$subdims_from_area_h %||% character(0)
+  prev <- prev_sel$h
+
+  added   <- setdiff(cur, prev)
+  removed <- setdiff(prev, cur)
+
+  if (length(added) > 0) {
+    last_selected(added[[1]])
+  } else if (length(removed) > 0) {
+    if (length(cur) > 0) {
+      last_selected(tail(cur, 1))
+    } else {
+      # Si este selector quedó vacío, verificar si el otro también está vacío
+      other_cur <- input$subdims_from_area_v %||% character(0)
+      if (length(other_cur) == 0) {
+        # Ambos selectores vacíos: limpiar la descripción
+        last_selected(NULL)
+      } else {
+        # El otro selector aún tiene valores: mantener su última selección
+        last_selected(tail(other_cur, 1))
+      }
+    }
+  }
+  prev_sel$h <- cur
+}, ignoreInit = TRUE, priority = 10)
+
+# --- Render de la descripción ---
+output$descripcion_longitudinal <- renderUI({
+  sel_v <- input$subdims_from_area_v %||% character(0)
+  sel_h <- input$subdims_from_area_h %||% character(0)
+
+  # Si no hay ninguna variable seleccionada en ningún selector, no mostrar nada
+  if (length(sel_v) == 0 && length(sel_h) == 0) {
+    return(NULL)
+  }
+
+  # Orden combinado: primero las del selector vertical, luego las del horizontal (sin duplicar)
+  sel_all <- unique(c(sel_v, sel_h))
+
+  # Construimos una "tarjeta" por cada selección
+  cards <- lapply(sel_all, function(nm) {
+    desc <- definiciones[[nm]]
+    if (is.null(desc) || is.na(desc) || identical(desc, "")) {
+      desc <- "No tengo una descripción asociada a esta subdimensión todavía."
+    }
+
+    tags$div(
+      style = "margin-top:8px; padding:10px; border-left:4px solid #1f77b4; background:#f7f7f7; border-radius:6px;",
+      tags$strong(nm),
+      tags$p(style = "margin:6px 0 0 0;", desc)
+    )
+  })
+
+  # Devolvemos todas las tarjetas apiladas
+  tagList(cards)
+})
+
+
+# --- RENDER DEL GRÁFICO ---
+output$subdims_plot <- plotly::renderPlotly({
+  # 1) Tomamos las selecciones actuales
+  sel_v <- input$subdims_from_area_v
+  sel_h <- input$subdims_from_area_h
+  
+  # 2) Si NO hay nada seleccionado en ninguno, retornamos un gráfico vacío
+  if (no_real_choice(sel_v) && no_real_choice(sel_h)) {
+    return(
+      plotly::plot_ly() %>%
+        plotly::layout(
+          xaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          yaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          showlegend = FALSE,
+          paper_bgcolor = "rgba(0,0,0,0)",
+          plot_bgcolor = "rgba(0,0,0,0)"
+        )
+    )
+  }
+  
+  # 3) Mapa de colores consistente por orden combinado
+  color_map <- build_color_map(sel_v, sel_h)
+  
+  # 4) Reconstruimos todas las trazas con lo actualmente seleccionado
+  p <- plotly::plot_ly()
+  p <- add_area_traces(p, sel_v, "Area vertical",   line_dash = "solid", color_map = color_map)
+  p <- add_area_traces(p, sel_h, "Area horizontal", line_dash = "solid", color_map = color_map)
+  
+  # 5) Layout final
+  p %>%
+    plotly::layout(
+      title  = "Serie temporal para categoría 'Alta' - 2016 a 2023",
+      xaxis  = list(title = "Ola", dtick = 1),
+      yaxis = list(title = "Porcentaje", range = c(0, 100), ticksuffix = "%"),
+      showlegend = TRUE,
+      legend = list(
+        orientation = "v",         # leyenda vertical
+        xanchor = "right",
+        yanchor = "bottom",
+        x = 1.02,                  # más cerca del gráfico
+        y = -0.27,
+        bgcolor = "rgba(255,255,255,0.8)",
+        bordercolor = "gray70",
+        borderwidth = 0.5,
+        font = list(size = 12),
+        tracegroupgap = 2,         # reduce el espacio entre grupos
+        itemwidth = 30             # <-- controla el ancho del bloque de leyenda
+      ),
+      annotations = list(
+        list(
+          text = "(1): 'Alta' agrupa las categorías 'de acuerdo' + 'muy de acuerdo'",
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.18,
+          xanchor = "left", yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        ),
+        list(
+          text = "(2): Los puntos ausentes en el gráfico significan que la variable no tiene datos disponibles para ese año.",
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.24,
+          xanchor = "left", yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        )
+      ),
+      margin = list(b = 150, r = 60) # margen derecho más estrecho
+    )
+})
+
+
+
+## BIVARIADO ----
+
+# load("data/bases-vis-elsoc/df_long_jerarquica.RData")
+
+# Preparation for Education-----------------------------------------------------
+# load("data/bases-vis-elsoc/bivariados_long_categoricos.RData")
+# db_categ <- cine_categ %>% select(ola,cine,categoria,starts_with("prop_")) %>% filter(categoria=="Alto")
+# names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
+# 
+# vars <- db_categ %>%
+#   ungroup () %>%
+#   select(
+#     # seguridad_pub
+#     seguridad_obj,seguridad_sub,
+#     # vinculos_territ
+#     sentido_pertenencia,satisfaccion_barrio,
+#     # redes_sociales
+#     comportamiento_prosocial,ayuda_economica,confianza_inter,
+# 
+#     conf_inst_pol,
+# 
+#     # prac_acti_pol,
+#     pp_politica,auto_efic,int_pol,
+# 
+#     pref_autor,
+# 
+#     just_distrib
+# 
+#     ) %>% names()
+# 
+# df_long <- db_categ %>%
+#   group_by(ola,cine) %>%
+#   summarise(across(all_of(vars), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+#   ungroup() %>%
+#   pivot_longer(cols = c(vars),names_to = "subdimension", values_to = "meanvalue") %>%
+#   mutate(subdimension = factor(subdimension, levels = vars)) %>%
+#   arrange(ola,subdimension)
+
+
+# df_long$subdimension <- NULL
+# df_long$dimension <- NULL
+# df_long$area <- NULL
+# library(dplyr)
+# 
+# 
+# sjmisc::frq(df_long$subdimension)
+# df_long$dimension <-
+# car::recode(df_long$subdimension, "
+#             'seguridad_obj'  = 'Seguridad pública';
+#             'seguridad_sub' = 'Seguridad pública';
+# 
+#             'sentido_pertenencia' = 'Vínculos territoriales';
+#             'satisfaccion_barrio' = 'Vínculos territoriales';
+# 
+#             'ayuda_economica' = 'Redes sociales';
+#             'comportamiento_prosocial' = 'Redes sociales';
+#             'confianza_inter' = 'Redes sociales';
+# 
+#             'conf_inst_pol' = 'Confianza en instituciones';
+# 
+#             'pp_politica' = 'Participación y actitudes políticas';
+#             'auto_efic' = 'Participación y actitudes políticas';
+#             'int_pol' = 'Participación y actitudes políticas';
+# 
+#             'pref_autor' = 'Preferencia por autoritarismo';
+# 
+#             'just_distrib' = 'Justicia distributiva';
+#             "
+#             )
+# 
+# sjmisc::frq(df_long$dimension)
+# 
+# df_long$area <-
+# car::recode(df_long$dimension, "
+#             'Seguridad pública'  = 'Area horizontal';
+#             'Vínculos territoriales' = 'Area horizontal';
+#             'Redes sociales' = 'Area horizontal';
+# 
+#             'Confianza en instituciones' = 'Area vertical';
+#             'Participación y actitudes políticas' = 'Area vertical';
+#             'Preferencia por autoritarismo' = 'Area vertical';
+#             'Justicia distributiva' = 'Area vertical'
+#             "
+#             )
+# 
+# df_long_cine<-
+# df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
+#   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue,levels=cine) %>%
+#   mutate(category="Educación")
+# # Prepare data for Gender------------------------------------------------------
+# db_categ <- sexo_categ %>% select(ola,sexo,categoria,starts_with("prop_")) %>% filter(categoria=="Alto")
+# names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
+# 
+# vars <- db_categ %>%
+#   ungroup () %>%
+#   select(
+#     # seguridad_pub
+#     seguridad_obj,seguridad_sub,
+#     # vinculos_territ
+#     sentido_pertenencia,satisfaccion_barrio,
+#     # redes_sociales
+#     comportamiento_prosocial,ayuda_economica,confianza_inter,
+# 
+#     conf_inst_pol,
+# 
+#     # prac_acti_pol,
+#     pp_politica,auto_efic,int_pol,
+# 
+#     pref_autor,
+# 
+#     just_distrib
+# 
+#     ) %>% names()
+# 
+# df_long <- db_categ %>%
+#   group_by(ola,sexo) %>%
+#   summarise(across(all_of(vars), ~ mean(.x, na.rm = TRUE)), .groups = "drop") %>%
+#   ungroup() %>%
+#   pivot_longer(cols = c(vars),names_to = "subdimension", values_to = "meanvalue") %>%
+#   mutate(subdimension = factor(subdimension, levels = vars)) %>%
+#   arrange(ola,subdimension)
+# 
+# 
+# df_long$dimension <- NULL
+# df_long$area <- NULL
+# library(dplyr)
+# 
+# 
+# sjmisc::frq(df_long$subdimension)
+# df_long$dimension <-
+# car::recode(df_long$subdimension, "
+#             'seguridad_obj'  = 'Seguridad pública';
+#             'seguridad_sub' = 'Seguridad pública';
+# 
+#             'sentido_pertenencia' = 'Vínculos territoriales';
+#             'satisfaccion_barrio' = 'Vínculos territoriales';
+# 
+#             'ayuda_economica' = 'Redes sociales';
+#             'comportamiento_prosocial' = 'Redes sociales';
+#             'confianza_inter' = 'Redes sociales';
+# 
+#             'conf_inst_pol' = 'Confianza en instituciones';
+# 
+#             'pp_politica' = 'Participación y actitudes políticas';
+#             'auto_efic' = 'Participación y actitudes políticas';
+#             'int_pol' = 'Participación y actitudes políticas';
+# 
+#             'pref_autor' = 'Preferencia por autoritarismo';
+# 
+#             'just_distrib' = 'Justicia distributiva';
+#             "
+#             )
+# 
+# sjmisc::frq(df_long$dimension)
+# 
+# df_long$area <-
+# car::recode(df_long$dimension, "
+#             'Seguridad pública'  = 'Area horizontal';
+#             'Vínculos territoriales' = 'Area horizontal';
+#             'Redes sociales' = 'Area horizontal';
+# 
+#             'Confianza en instituciones' = 'Area vertical';
+#             'Participación y actitudes políticas' = 'Area vertical';
+#             'Preferencia por autoritarismo' = 'Area vertical';
+#             'Justicia distributiva' = 'Area vertical'
+#             "
+#             )
+# 
+# df_long_sexo<-
+# df_long %>% group_by(ola,subdimension) %>% mutate(meanvalue_sdim=mean(meanvalue,na.rm = T)) %>%
+#   rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension,Valor=meanvalue,levels=sexo) %>%
+#   mutate(category="Sexo")
+# 
+# df_long_bivariate<- bind_rows(df_long_sexo,df_long_cine) %>% select(Ola,category,everything())
+# save(df_long_bivariate,file = "data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
+# load("data/bases-vis-elsoc/bivariados_long_categoricos_proc.RData")
+
+  dat_filtered <- reactive({
+    req(input$subdim_select, input$category_select)
+
+    ungroup(df_long_bivariate) %>%
+      dplyr::filter(
+        Subdimension == input$subdim_select,
+        category == input$category_select
+      ) %>%
+      dplyr::select(Ola, levels, Valor, Subdimension, category) %>%  # keep Valor
+      dplyr::mutate(
+        Ola = as.factor(Ola),
+        levels = as.factor(levels)
+      ) %>%
+      dplyr::arrange(Ola, levels)
+  })
+
+  output$plot_bivariado <- plotly::renderPlotly({
+    req(dat_filtered())
+
+   plotly::plot_ly(
+    dat_filtered(),
+    x = ~Ola,
+    y = ~Valor,
+    color = ~levels,
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(width = 2),
+    marker = list(size = 6)
+  ) %>%
+    plotly::layout(
+      title = paste0("Subdimension: ", input$subdim_select,
+                     " | Category: ", input$category_select),
+      xaxis = list(title = "Ola"),
+      yaxis = list(title = "Valor")
+    )
+  })
+
+```
