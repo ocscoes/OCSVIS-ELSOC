@@ -300,6 +300,31 @@ db_long$quintil <-
 
 sjmisc::frq(db_long$quintil)
 
+# Compute income groups: 10% bottom, 40% lower middle, 40% upper middle, 10% top
+db_long <- db_long %>% 
+  group_by(ola) %>% 
+  mutate(
+    percentil = ntile(ing_pc, 10),
+    grupo_ingreso = case_when(
+      percentil == 1 ~ "Bottom 10%",
+      percentil %in% c(2, 3, 4, 5) ~ "Lower Middle 40%",
+      percentil %in% c(6, 7, 8, 9) ~ "Upper Middle 40%", 
+      percentil == 10 ~ "Top 10%",
+      TRUE ~ NA_character_
+    )
+  ) %>% 
+  ungroup()
+
+db_long$grupo_ingreso <- 
+  factor(db_long$grupo_ingreso,
+         levels = c('Bottom 10%', 'Lower Middle 40%', 'Upper Middle 40%', 'Top 10%'))
+
+db_long$grupo_ingreso <- 
+  sjlabelled::set_label(x = db_long$grupo_ingreso,
+                        label = "Grupos de ingreso (10%-40%-40%-10%)")  
+
+sjmisc::frq(db_long$grupo_ingreso)
+
 #include new quintile category with missing cases
 db_long$quintil1<-
   car::recode(db_long$quintil, 
@@ -311,6 +336,17 @@ db_long$quintil1 <-
   sjlabelled::set_label(x = db_long$quintil1,
                         label = "Quintil de ingresos por hogar per cápita (NA)") 
 sjmisc::frq(db_long$quintil1)
+
+# Include missing cases for income groups
+db_long$grupo_ingreso1 <- 
+  car::recode(db_long$grupo_ingreso, 
+              "'Bottom 10%'='Bottom 10%';'Lower Middle 40%'='Lower Middle 40%';'Upper Middle 40%'='Upper Middle 40%';'Top 10%'='Top 10%'; NA='GNA'")
+
+db_long$grupo_ingreso1 <- 
+  sjlabelled::set_label(x = db_long$grupo_ingreso1,
+                        label = "Grupos de ingreso con NA (10%-40%-40%-10%)")  
+
+sjmisc::frq(db_long$grupo_ingreso1)
 
 frq(db_long$ola) #ok
 
@@ -329,7 +365,8 @@ db_long <- db_long %>%
             m29_imp,
             ipc,
             n_hogar,
-            n_hogar_r))
+            n_hogar_r,
+            percentil))
 
 # db_long promedios
 
