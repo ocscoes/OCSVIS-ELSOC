@@ -14,6 +14,8 @@ server: shiny
 resources: 
  - www
  - css
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
@@ -123,20 +125,18 @@ UP_LEVEL_OPTION_VALUE <- "__VOLVER__" # Nuevo valor único para la opción "subi
 }
 </style>
 ```
-
 # Inicio
 
 **Elige una de las pestañas disponibles para realizar el análisis**:
 
+-   ***Longitudinal***: En este apartado se comparan los promedios de las dimensiones y subdimensiones a través de un gráfico de líneas histórico. Para proyectar los análisis, debes seleccionar un elemento a visualizar.
 
-  -   **_Longitudinal_**: En este apartado se comparan los promedios de las dimensiones y subdimensiones a través de un gráfico de líneas histórico. Para proyectar los análisis, debes seleccionar un elemento a visualizar.
-  
-  -   **_Ranking_**: Sigue la misma lógica que la sección mapa, pero mostrando un ranking ordenado por dimensiones y subdimensiones, para cada ola disponible. 
+-   ***Ranking***: Sigue la misma lógica que la sección mapa, pero mostrando un ranking ordenado por dimensiones y subdimensiones, para cada ola disponible.
 
-  -   **_Bivariado_**: Aquí se encuentran dos selectores entre los que encontrarás las dimensiones y subdimensiones, además de algunas variables de caracterización sociodemográficas.  
+-   ***Bivariado***: Aquí se encuentran dos selectores entre los que encontrarás las dimensiones y subdimensiones, además de algunas variables de caracterización sociodemográficas.
 
 Todas los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
-  
+
 Más información sobre las fuentes de datos, la selección de indicadores y la construcción de los índices <a href="https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html" target="_blank">aquí</a>.
 
 ```{=HTML}
@@ -183,11 +183,9 @@ Más información sobre las fuentes de datos, la selección de indicadores y la 
 }
 </style>
 ```
-
 # Análisis Longitudinal
 
-
-## {.sidebar width="20%"}
+##  {.sidebar width="20%"}
 
 ```{r}
 
@@ -279,8 +277,6 @@ tagList(
 
 ```
 
-
-
 ```{r}
 uiOutput("descripcion_longitudinal")
 ```
@@ -292,11 +288,9 @@ uiOutput("descripcion_longitudinal")
 plotlyOutput("subdims_plot", height = "800px")
 ```
 
-
-
 # Ranking
 
-## {.sidebar width="25%"}
+##  {.sidebar width="25%"}
 
 ```{r}
 tags$style(HTML("
@@ -437,7 +431,7 @@ plotlyOutput("bar_plot")
 
 # Análisis Bivariado
 
-## {.sidebar width="20%"}
+##  {.sidebar width="20%"}
 
 ```{r}
 
@@ -482,38 +476,37 @@ uiOutput("descripcion_bivariado")
 plotlyOutput("plot", height = "800px")
 ```
 
-
-
 ```{r server}
 #| context: server
 
 # base longitudinal
 
 # load("data/bases-vis-elsoc/df_long_jerarquica.RData")
-load("data/bases-vis-elsoc/db_categ_ola.RData")
+load("data/bases-vis-elsoc/df_categ_jerarquica.RData")
 
 
-db_categ <- db_categ_ola %>% select(ola,valor,starts_with("prop_")) %>% filter(valor=="Alto")
+db_categ <- df_categ_jerarquica %>% 
+  select(ola,valor,ends_with("_prop")) %>% filter(valor=="Alto")
 names(db_categ) <- stringi::stri_replace_all(str = names(db_categ),replacement = "",regex = "prop_*")
 
 vars <- db_categ %>% 
   ungroup () %>% 
   select(
     # seguridad_pub
-    seguridad_obj,seguridad_sub,
+    sd_seguridad_obj, sd_seguridad_sub,
     # vinculos_territ
-    sentido_pertenencia,satisfaccion_barrio,
+     sd_sentido_pertenencia, sd_satisfaccion_barrio,
     # redes_sociales
-    comportamiento_prosocial,ayuda_economica,confianza_inter,
+     sd_comportamiento_prosocial, sd_ayuda_economica, sd_confianza_inter,
     
-    conf_inst_pol, 
+     sd_conf_inst_pol, 
     
     # prac_acti_pol,  
-    pp_politica,auto_efic,int_pol,
+    sd_pp_politica, sd_auto_efic, sd_int_pol,
     
-    pref_autor,
+     sd_pref_autor,
     
-    just_distrib
+     sd_just_distrib
     
     ) %>% names()
 

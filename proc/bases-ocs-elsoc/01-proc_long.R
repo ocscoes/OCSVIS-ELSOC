@@ -386,18 +386,6 @@ frq(db$in_seg_peleas_calle)
 frq(db$in_seg_asaltos)
 frq(db$in_seg_trafico_drogas)
 
-# Verificar la inversión de escala
-cat("=== VERIFICACIÓN DE INVERSIÓN DE ESCALA ===\n")
-cat("Ahora: 5=Nunca problemas (muy seguro), 1=Siempre problemas (muy inseguro)\n")
-cat("Rango de valores después de inversión:\n")
-cat("peleas_calle:", range(db$in_seg_peleas_calle, na.rm = TRUE), "\n")
-cat("asaltos:", range(db$in_seg_asaltos, na.rm = TRUE), "\n")
-cat("trafico_drogas:", range(db$in_seg_trafico_drogas, na.rm = TRUE), "\n")
-
-# Verificar distribución por ola
-cat("\nDistribución de peleas_calle por ola (después de inversión):\n")
-print(table(db$ola, db$in_seg_peleas_calle, useNA = "ifany"))
-
 db$sd_seguridad_obj <- rowMeans(db[, c("in_seg_peleas_calle", "in_seg_asaltos", "in_seg_trafico_drogas")], na.rm = TRUE)
 db$sd_seguridad_obj <- (round(db$sd_seguridad_obj * 2) / 2)
 
@@ -776,12 +764,6 @@ db %>%
   select(in_autor_gobierno_firme, in_autor_mandatario_fuerte, in_autor_vida_disciplinar) %>% 
   frq()
 
-# Verificar la inversión
-cat("=== VERIFICACIÓN INVERSIÓN PREFERENCIAS AUTORITARIAS ===\n")
-cat("Ahora: 5=Totalmente en desacuerdo con autoritarismo (más democrático)\n")
-cat("       1=Totalmente de acuerdo con autoritarismo (más autoritario)\n")
-
-
 db$sd_pref_autor <- rowMeans(db[, c("in_autor_gobierno_firme", "in_autor_mandatario_fuerte", "in_autor_vida_disciplinar")], na.rm = TRUE)
 
 frq(db$sd_pref_autor)
@@ -834,12 +816,6 @@ db <- db %>%
     in_just_pensiones = sjmisc::rec(in_just_pensiones, rec = "rev"),
     in_just_educacion = sjmisc::rec(in_just_educacion, rec = "rev"),
     in_just_salud = sjmisc::rec(in_just_salud, rec = "rev"))
-
-
-# Verificar la inversión
-cat("=== VERIFICACIÓN INVERSIÓN JUSTICIA DISTRIBUTIVA ===\n")
-cat("Ahora: 5=Totalmente en desacuerdo con injusticia (más justo)\n")
-cat("       1=Totalmente de acuerdo con injusticia (menos justo)\n")
 
 db$sd_just_distrib <- rowMeans(db[, c("in_just_pensiones", "in_just_educacion", "in_just_salud")], na.rm = TRUE)
 
@@ -905,13 +881,319 @@ for (variable in variables_recode) {
 frq(db$sd_seguridad_sub)
 frq(db$in_seg_seguridad_sat)
 
+
+################
+# COVARIABLES -------------------------------------------------------------
+################
+
+# 3.1 Educacion
+
+frq(db$educacion)
+
+db <- db %>% 
+  mutate(cine = case_when(educacion %in% c(1,2,3) ~ "Primaria o menos",
+                          educacion %in% c(4,5) ~ "Secundaria",
+                          educacion %in% c(6,7) ~ "Técnica",
+                          educacion %in% c(8,9,10) ~ "Universitaria o más",
+                          TRUE ~ NA_character_),
+         cine = factor(cine, 
+                       levels = c("Primaria o menos",
+                                  "Secundaria",
+                                  "Técnica",
+                                  "Universitaria o más")))
+
+db$cine <-
+  sjlabelled::set_label(x = db$cine,
+                        label = "Educación (CINE)")
+
+frq(db$cine)
+
+db$educ_dic <-
+  car::recode(db$educacion,
+              "c(1,2,3,4,5,6,7)=1;c(8,9,10)=2; c(-888,-999)=NA")
+
+db$educ_dic <-
+  factor(db$educ_dic,
+         labels = c("Menor que universitaria","Universitaria"))
+
+db$educ_dic <-
+  sjlabelled::set_label(x = db$educ_dic,
+                        label = "Educación (dicotómica)")
+
+frq(db$educ_dic)
+
+#Recoding of education to years based on casen 2017.
+
+db$educyear<- as.numeric(
+  car::recode(db$educacion,
+              "1=0;2=4.3;3=7.5;4=9.8;5=12.02;6=13.9;
+               7=14.8;8=14.9;9=16.9;10=19.07;c(-888,-999)=NA",
+              as.numeric = T))
+db$educyear <-
+  sjlabelled::set_label(x = db$educyear,
+                        label = "Educación en años")
+
+frq(db$educyear)
+
+
+# 3.2 Sexo
+frq(db$sexo)
+
+db$sexo <- car::recode(db$sexo, 
+                       recodes = c("1='Hombre'; 2='Mujer'"), 
+                       levels = c("Hombre", "Mujer"),
+                       as.factor = T)
+
+db$sexo <- sjlabelled::set_label(db$sexo, 
+                                 label = "Sexo")
+frq(db$sexo)
+
+# 3.3 Edad
+frq(db$edad)
+
+db$edad_t <- 
+  factor(car::recode(db$edad, 
+                     "18:29=1;30:49=2;50:64=3;65:150=4"),
+         labels = c('18-29', '30-49', '50-64', '65 o más'))
+
+db$edad_t <-
+  sjlabelled::set_label(db$edad_t, 
+                        label = c("Edad (tramos)")) 
+
+frq(db$edad_t)
+
+# 3.4 Ideologia
+frq(db$ideologia)
+
+db$ideologia<-
+  factor(
+    car::recode(
+      db$ideologia,
+      "c(11,12,-888,-999)='No se identifica';c(0,1,2,3,4)='Izquierda';
+     c(5)='Centro';c(6,7,8,9,10)='Derecha'"
+    ),
+    levels = c('Izquierda', 'Centro', 'Derecha', 'No se identifica')
+  )
+
+db$ideologia<- factor(db$ideologia,levels = levels(db$ideologia))
+
+db$ideologia <- 
+  sjlabelled::set_label(x = db$ideologia, 
+                        label = "Identificación política") 
+
+frq(db$ideologia)
+
+# 3.5 Religion
+frq(db$religion)
+
+db <- db %>% 
+  mutate(religion = case_when(religion == 1 ~ "Catolico",
+                              religion == 2 ~ "Evangelico",
+                              religion == 3 ~ "Protestante",
+                              religion == 4 ~ "Judio",
+                              religion == 5 ~ "Creyente no adherente",
+                              religion == 6 ~ "Otra",
+                              religion == 7 ~ "Ateo",
+                              religion == 8 ~ "Agnostico",
+                              religion == 9 ~ "Ninguna",
+                              TRUE ~ NA_character_
+                              
+  )) 
+
+db$religion <- 
+  sjlabelled::set_label(x = db$religion, 
+                        label = "Identificación religiosa") 
+
+frq(db$religion)
+
+# 3.6 Estado civil
+
+frq(db$estado_civil)
+
+db <- db %>% 
+  mutate(estado_civil = case_when(
+    estado_civil %in% c(1,2,3) ~ "Casado/Conviviente",
+    estado_civil == 4 ~ "Soltero",
+    estado_civil %in% c(5,6,7,8,9) ~ "Separado/Divorciado/Viudo/Anulado/Otro",
+    TRUE ~ NA_character_
+    
+  )) 
+
+db$estado_civil <- 
+  sjlabelled::set_label(x = db$estado_civil, 
+                        label = "Estado civil") 
+
+frq(db$estado_civil)
+
+# 3.7 Ingresos
+
+# N Household:
+# Select variables______________________________________________________________
+# Household income_________________________________________
+
+#Impute midpoint of income ranges
+db$m30_rec <-
+  as.numeric(car::recode(db$m30,
+                         "1=110000;2=251000;3=305000;4=355000;5=400000;
+            6=445000;7=490000;8=535000;9=585000;10=640000;11=700000;12=765000;
+            13=845000;14=935000;15=1040000;16=1180000;17=1375000;18=1670000;
+            19=2275000;20=2700000;NA=NA;c(-888,-999)=NA"))
+
+#Impute midpoint of income ranges (2021)
+db$m30b_rec <-
+  as.numeric(car::recode(db$m30b,
+                         "1=125000;2=300000;3=400000;4=575000;5=700000;NA=NA;c(-888,-999)=NA"))
+
+sjmisc::frq(db$m30_rec)
+sjmisc::frq(db$m30b_rec)
+
+#Recode DK/DA of Income to NA
+db$m29_rec <-
+  as.numeric(car::recode(db$m29,"c(-888,-999)=NA"))
+
+#replace NA of income with new imputed variable
+db$m29_imp <- 
+  ifelse(test = !is.na(db$m29_rec),
+         yes =  db$m29_rec,
+         no =  db$m30_rec)
+summary(db$m29_imp)
+
+db$m29_imp <- 
+  ifelse(test = is.na(db$m29_imp),
+         yes =  db$m30b_rec,
+         no =  db$m29_imp)
+summary(db$m29_imp)
+
+# deflate at each year's prices
+library(rvest)
+
+url <- "https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_PRECIOS/MN_CAP_PRECIOS/IPC_EMP_2023/638415285164039007?cbFechaInicio=2016&cbFechaTermino=2025&cbFrecuencia=MONTHLY&cbCalculo=NONE&cbFechaBase="
+
+ipc <- url %>%
+  read_html() %>%
+  html_node("table") %>%
+  html_table() %>% 
+  rename_with(., ~ tolower(gsub(".", "_", .x, fixed = TRUE))) %>% 
+  filter(serie == "Índice IPC General") %>% 
+  mutate(
+    across(
+      .cols = c(everything(), -serie),
+      .fns = ~ as.numeric(str_replace(., ",", "."))
+    )) %>% 
+  select(-sel_) %>% 
+  pivot_longer(., cols = -serie,
+               names_to = "ano_mes",
+               values_to = "ipc") %>% 
+  tidyr::separate(col = "ano_mes", into = c("mes", "ano"))
+
+ipc <- ipc %>% 
+  filter(mes == "dic") %>% 
+  select(ano, ipc)
+
+db <- left_join(db, ipc, by = c("ola" = "ano"))
+
+frq(db$ipc)
+
+# Reshape long to wide
+db_wide <- db %>% 
+  tidyr::pivot_wider(id_cols = c("idencuesta","muestra"),
+                     names_from = "ola",
+                     values_from = names(select(db, tipo_atricion:ipc))
+  )
+
+db_wide$m54_2022 <- db_wide$m54_2023
+
+# reshape from long to wide
+db_long <- db_wide %>%
+  pivot_longer(
+    cols = -c(idencuesta, muestra),
+    names_to = c(".value", "ola"),
+    # Toma TODO lo que va antes del último "_" como nombre de variable,
+    # y lo que va después como la ola (1..7)
+    names_pattern = "^(.*)_(\\d+)$",
+    values_drop_na = T
+  ) %>%
+  mutate(ola = as.integer(ola))
+
+db_long <-
+  db_long %>%
+  mutate(n_hogar =
+           dplyr::case_when(ola == 2016 ~ nhogar1,
+                            ola == 2017 ~ m46_nhogar,
+                            ola == 2018 ~ m54,
+                            ola == 2019 ~ m54,
+                            ola == 2021 ~ m54,
+                            ola == 2022 ~ m54,
+                            ola == 2023 ~ m54))
+sjmisc::frq(db_long$n_hogar)
+
+#Recode DK/DA to NA
+db_long$n_hogar_r<-
+  car::recode(db_long$n_hogar,"c(-888,-999)=NA")
+
+# Per capita household income:
+db_long$ing_pc <- 
+  (db_long$m29_imp/db_long$n_hogar_r)
+
+db_long$ing_pc <-
+  sjlabelled::set_label(x = db_long$ing_pc,
+                        label = "Ingreso por hogar per cápita")  
+
+sjmisc::descr(db_long$ing_pc)
+
+# Compute income groups: 10% bottom, 40% lower middle, 40% upper middle, 10% top
+db_long <- db_long %>% 
+  group_by(ola) %>% 
+  mutate(
+    percentil = ntile(ing_pc, 10),
+    grupo_ingreso = case_when(
+      percentil == 1 ~ "Bottom 10%",
+      percentil %in% c(2, 3, 4, 5) ~ "Lower Middle 40%",
+      percentil %in% c(6, 7, 8, 9) ~ "Upper Middle 40%", 
+      percentil == 10 ~ "Top 10%",
+      TRUE ~ NA_character_
+    )
+  ) %>% 
+  ungroup()
+
+db_long$grupo_ingreso <- 
+  factor(db_long$grupo_ingreso,
+         levels = c('Bottom 10%', 'Lower Middle 40%', 'Upper Middle 40%', 'Top 10%'))
+
+db_long$grupo_ingreso <- 
+  sjlabelled::set_label(x = db_long$grupo_ingreso,
+                        label = "Grupos de ingreso (10%-40%-40%-10%)")  
+
+sjmisc::frq(db_long$grupo_ingreso)
+
+# Include missing cases for income groups
+db_long$grupo_ingreso1 <- 
+  car::recode(db_long$grupo_ingreso, 
+              "'Bottom 10%'='Bottom 10%';'Lower Middle 40%'='Lower Middle 40%';'Upper Middle 40%'='Upper Middle 40%';'Top 10%'='Top 10%'; NA='GNA'")
+
+db_long$grupo_ingreso1 <- 
+  sjlabelled::set_label(x = db_long$grupo_ingreso1,
+                        label = "Grupos de ingreso con NA (10%-40%-40%-10%)")  
+
+sjmisc::frq(db_long$grupo_ingreso1)
+
+frq(db_long$ola) #ok
+
 # 3.4 Check BBDD
 
-glimpse(db)
+glimpse(db_long)
 
-sjPlot::view_df(db,
+sjPlot::view_df(db_long,
                 show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
 
+db_long <- db_long %>%
+  group_by(idencuesta) %>%             # Agrupar por el identificador del participante
+  mutate(n_participaciones = n()) %>%  # Contar el número de filas (participaciones) por participante
+  ungroup()
+
+db_long <- db_long %>% 
+  filter(n_participaciones>=3) %>% 
+  select(-n_participaciones) # quedarse con casos que hayan participado >=3 veces
 
 # 4. Final data -----------------------------------------------------------
 
@@ -921,20 +1203,12 @@ sjPlot::view_df(db,
 # BASE 1a: Promedios por ID de encuesta
 # ==========================================
 
-db <- db %>%
-  group_by(idencuesta) %>%             # Agrupar por el identificador del participante
-  mutate(n_participaciones = n()) %>%  # Contar el número de filas (participaciones) por participante
-  ungroup()
+db_long <- db_long %>% 
+  select(-c(13:18,87:94))
 
-db <- db %>% 
-  filter(n_participaciones>=3) %>% 
-  select(-n_participaciones) # quedarse con casos que hayan participado >=3 veces
+glimpse(db_long)
 
-# Ver resultado
-head(db)
-dim(db)
-
-db_madre <- db
+db_madre <- db_long
 
 save(db_madre, file = here ("data/bases-vis-elsoc/db_madre.RData"))
 
@@ -942,28 +1216,14 @@ save(db_madre, file = here ("data/bases-vis-elsoc/db_madre.RData"))
 # BASE 2b: Promedios por ola (sin NAs)
 # ==========================================
 
-db_promedios_ola <- db %>%
-  select(-c(idencuesta, 
-            muestra, 
-            tipo_atricion, 
-            segmento,
-            estrato,
-            educacion,
-            edad, 
-            sexo, 
-            ideologia, 
-            religion, 
-            estado_civil,
-            nhogar1,
-            m46_nhogar,
-            m54,
-            m30,
-            m30b,
-            m29)) %>%  # Excluir variables
+db_promedios_ola <- db_long %>%
   group_by(ola) %>%
-  summarise(across(where(is.numeric), 
-                   ~mean(.x, na.rm = TRUE),
+  summarise(
+    across(
+      .cols = starts_with(c("in_", "sd_", "di_", "ar_")),
+      .fns = ~mean(., na.rm = TRUE),
                    .names = "{.col}"))
+
 # Ver resultado
 head(db_promedios_ola)
 dim(db_promedios_ola)
@@ -974,40 +1234,6 @@ dim(db_promedios_ola)
 
 # En RData
 save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
-
-# ==========================================
-# BASE 3: Promedios por ola y tipo de muestra (sin NAs)
-# ==========================================
-
-db_promedios_ola_muestra <- db %>%
-  select(-c(idencuesta, 
-            tipo_atricion, 
-            segmento,
-            estrato,
-            educacion,
-            edad, 
-            sexo, 
-            ideologia, 
-            religion, 
-            estado_civil,
-            nhogar1,
-            m46_nhogar,
-            m54,
-            m30,
-            m30b,
-            m29)) %>% 
-  group_by(ola, muestra) %>%
-  summarise(across(where(is.numeric), 
-                   ~mean(.x, na.rm = TRUE),
-                   .names = "{.col}"),
-            .groups = "drop")
-
-# Ver resultado
-head(db_promedios_ola_muestra)
-dim(db_promedios_ola_muestra)
-
-# Guardar
-save(db_promedios_ola_muestra, file = here ("data/bases-vis-elsoc/db_promedios_ola_muestra.RData"))
 
 # ==============================================
 # BASES: Recodificaciones Alto-Medio-Bajo (1-5)
@@ -1026,12 +1252,12 @@ todas_las_variables <- c(
 )
 
 # 2. Recodifica todas las variables de una vez
-db_categ <- db %>%
+db_categ <- db_long %>%
   mutate(across(all_of(todas_las_variables), ~case_when(
     .x >= 3 ~ "Alto",
     .x < 3  ~ "Bajo"
   ))) %>% 
-  select(1:18, all_of(todas_las_variables))
+  select(c(1:12, 76:83),all_of(todas_las_variables))
 
 db_categ <- db_categ %>% 
   mutate_at(.vars = todas_las_variables, .funs = ~ as_factor(.))
@@ -1088,38 +1314,8 @@ db_categ_ola
 save(db_categ, file = here ("data/bases-vis-elsoc/db_categ.RData"))
 save(db_categ_ola, file = here ("data/bases-vis-elsoc/db_categ_ola.RData"))
 
-# ==========================================
-# BASE 3 RECODE: Promedios por ola y tipo de muestra (sin NAs)
-# ==========================================
-
-db_categ_ola_muestra <- db_categ %>%
-  select(ola, muestra, all_of(todas_las_variables)) %>% 
-  pivot_longer(
-    cols = -c(ola, muestra),
-    names_to = "variable",
-    values_to = "valor"
-  ) %>% 
-  na.omit()
-
-db_categ_ola_muestra <- db_categ_ola_muestra %>%
-  group_by(ola, muestra, variable, valor) %>%
-  summarise(n = n(), .groups = "drop_last") %>%
-  mutate(prop = n / sum(n))
-
-db_categ_ola_muestra <- db_categ_ola_muestra %>%
-  pivot_wider(
-    names_from = variable,
-    values_from = c(n, prop),
-    values_fill = NA
-  )
-
-db_categ_ola_muestra
-
-# Guardar
-save(db_categ_ola_muestra, file = here ("data/bases-vis-elsoc/db_categ_ola_muestra.RData"))
-
 # ==============================================
-# BASE 4: Base longitudinal con estructura jerárquica
+# BASE 4: Base longitudinal con estructura jerárquica promedios
 # ==============================================
 
 # Crear base longitudinal con todos los indicadores
@@ -1140,7 +1336,7 @@ variables_indicadores <- c(
 )
 
 # Crear base en formato largo
-df_long_jerarquica <- db %>%
+df_long_jerarquica <- db_long %>%
   select(idencuesta, ola, all_of(variables_indicadores)) %>%
   pivot_longer(
     cols = -c(idencuesta, ola),
@@ -1258,3 +1454,30 @@ glimpse(df_long_jerarquica)
 # Guardar base longitudinal
 save(df_long_jerarquica, file = here ("data/bases-vis-elsoc/df_long_jerarquica.RData"))
 
+# ==============================================
+# BASE 4: Base longitudinal con estructura jerárquica categoricas
+# ==============================================
+
+df_categ_jerarquica <- db_categ %>% 
+  select(ola, 21:42) %>% 
+  pivot_longer(
+    cols = -ola,
+    names_to = "variable",
+    values_to = "valor"
+  ) %>% 
+  na.omit()
+
+df_categ_jerarquica <- df_categ_jerarquica %>%
+  group_by(ola, variable, valor) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(prop = n / sum(n))
+
+df_categ_jerarquica <- df_categ_jerarquica %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = c(n, prop),
+    values_fill = NA,
+    names_glue = "{variable}_{.value}"
+  )
+
+save(df_categ_jerarquica, file = here ("data/bases-vis-elsoc/df_categ_jerarquica.RData"))
