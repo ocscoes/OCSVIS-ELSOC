@@ -38,7 +38,7 @@ elsoc_long_2016_2023[elsoc_long_2016_2023 ==-777] <- NA
 elsoc_long_2016_2023[elsoc_long_2016_2023 ==-666] <- NA
 
 db <- elsoc_long_2016_2023 %>% 
-  select(idencuesta, 
+  mutate(idencuesta, 
          ola,
          muestra,
          tipo_atricion,
@@ -53,47 +53,47 @@ db <- elsoc_long_2016_2023 %>%
          nhogar1,
          m46_nhogar,
          m54, m30, m30b, m29,
-         in_seg_seguridad_sat = t06_01, 
-         in_seg_seguridad_perc = t10, 
-         in_seg_peleas_calle = t09_01,
-         in_seg_asaltos = t09_02,
-         in_seg_trafico_drogas = t09_03,
-         in_bar_ideal = t02_01,
-         in_bar_integracion = t02_02, 
-         in_bar_identidad = t02_03, 
-         in_bar_pertenencia = t02_04, 
-         in_bar_amigos = t03_01, 
-         in_bar_sociable = t03_02, 
-         in_bar_cordial = t03_03, 
-         in_bar_colaborador = t03_04, 
-         in_conf_inter_general = c02,
-         in_conf_inter_altruismo = c03,
-         in_prosoc_reunion_pub = c07_02, 
-         in_prosoc_voluntariado = c07_04,
-         in_ayuda_donar_dinero = c07_05,
-         in_ayuda_prestar_dinero = c07_06, 
-         in_ayuda_trabajo = c07_08,
-         in_conf_inst_gobierno = c05_01, 
-         in_conf_inst_pp = c05_02, 
-         in_conf_judicial = c05_05, 
-         in_conf_inst_congreso = c05_07, 
-         in_part_firma_peticion = c08_01, 
-         in_part_asiste_marcha = c08_02, 
-         in_part_huelga = c08_03,
-         in_opinion_rrss = c08_04, 
-         in_autoef_voto_deber = c10_01, 
-         in_autoef_voto_influye = c10_02, 
-         in_autoef_voto_expresion = c10_03, 
-         in_intpol_interes_politica = c13, 
-         in_intpol_hablar_politica = c14_01, 
-         in_intpol_infopolitica_medios = c14_02, 
-         in_autor_gobierno_firme = c18_04, 
-         in_autor_mandatario_fuerte = c18_05, 
-         in_autor_vida_disciplinar = c18_07, 
-         in_just_pensiones = d02_01,
-         in_just_educacion = d02_02, 
-         in_just_salud = d02_03, 
-         in_sat_democracia = c01) %>% 
+         seg_seguridad_sat = t06_01, 
+         seg_seguridad_perc = t10, 
+         seg_peleas_calle = t09_01,
+         seg_asaltos = t09_02,
+         seg_trafico_drogas = t09_03,
+         bar_ideal = t02_01,
+         bar_integracion = t02_02, 
+         bar_identidad = t02_03, 
+         bar_pertenencia = t02_04, 
+         bar_amigos = t03_01, 
+         bar_sociable = t03_02, 
+         bar_cordial = t03_03, 
+         bar_colaborador = t03_04, 
+         conf_inter_general = c02,
+         conf_inter_altruismo = c03,
+         prosoc_reunion_pub = c07_02, 
+         prosoc_voluntariado = c07_04,
+         ayuda_donar_dinero = c07_05,
+         ayuda_prestar_dinero = c07_06, 
+         ayuda_trabajo = c07_08,
+         conf_inst_gobierno = c05_01, 
+         conf_inst_pp = c05_02, 
+         conf_judicial = c05_05, 
+         conf_inst_congreso = c05_07, 
+         part_firma_peticion = c08_01, 
+         part_asiste_marcha = c08_02, 
+         part_huelga = c08_03,
+         opinion_rrss = c08_04, 
+         autoef_voto_deber = c10_01, 
+         autoef_voto_influye = c10_02, 
+         autoef_voto_expresion = c10_03, 
+         intpol_interes_politica = c13, 
+         intpol_hablar_politica = c14_01, 
+         intpol_infopolitica_medios = c14_02, 
+         autor_gobierno_firme = c18_04, 
+         autor_mandatario_fuerte = c18_05, 
+         autor_vida_disciplinar = c18_07, 
+         just_pensiones = d02_01,
+         just_educacion = d02_02, 
+         just_salud = d02_03, 
+         sat_democracia = c01) %>% 
   as_tibble() %>% 
   sjlabelled::drop_labels(., drop.na = FALSE)
 
@@ -133,15 +133,15 @@ frq(db$muestra)
 
 db %>% 
   group_by(ola) %>% 
-  select(in_prosoc_reunion_pub, in_prosoc_voluntariado) %>% 
+  select(prosoc_reunion_pub, prosoc_voluntariado) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_prosoc_reunion_pub %in% c(1,2,3))),
-    n_validos = sum(in_prosoc_reunion_pub %in% c(1,2,3)),
+    n_invalidos = sum(!(prosoc_reunion_pub %in% c(1,2,3))),
+    n_validos = sum(prosoc_reunion_pub %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -150,14 +150,14 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_prosoc_voluntariado %in% c(1,2,3))),
-    n_validos = sum(in_prosoc_voluntariado %in% c(1,2,3)),
+    n_invalidos = sum(!(prosoc_voluntariado %in% c(1,2,3))),
+    n_validos = sum(prosoc_voluntariado %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
 # Recode Redes (una por una )
-variables_a_transformar <- c("in_prosoc_reunion_pub", "in_prosoc_voluntariado")
+variables_a_transformar <- c("prosoc_reunion_pub", "prosoc_voluntariado")
 
 # Primero convertir valores inválidos a NA (solo mantener 1, 2, 3)
 db <- db %>%
@@ -175,23 +175,23 @@ db <- db %>%
 # Verificar el resultado
 summary(db[, variables_a_transformar])  
 
-db$sd_comportamiento_prosocial <- rowMeans(db[, c("in_prosoc_reunion_pub", "in_prosoc_voluntariado")], na.rm = TRUE)
+db$comportamiento_prosocial <- rowMeans(db[, c("prosoc_reunion_pub", "prosoc_voluntariado")], na.rm = TRUE)
 
-frq(db$sd_comportamiento_prosocial)
+frq(db$comportamiento_prosocial)
 
 # ayuda_economica
 
 db %>% 
   group_by(ola) %>% 
-  select(in_ayuda_prestar_dinero, in_ayuda_trabajo, in_ayuda_donar_dinero) %>% 
+  select(ayuda_prestar_dinero, ayuda_trabajo, ayuda_donar_dinero) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_ayuda_prestar_dinero %in% c(1,2,3))),
-    n_validos = sum(in_ayuda_prestar_dinero %in% c(1,2,3)),
+    n_invalidos = sum(!(ayuda_prestar_dinero %in% c(1,2,3))),
+    n_validos = sum(ayuda_prestar_dinero %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -200,8 +200,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_ayuda_trabajo %in% c(1,2,3))),
-    n_validos = sum(in_ayuda_trabajo %in% c(1,2,3)),
+    n_invalidos = sum(!(ayuda_trabajo %in% c(1,2,3))),
+    n_validos = sum(ayuda_trabajo %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -210,14 +210,14 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_ayuda_donar_dinero %in% c(1,2,3))),
-    n_validos = sum(in_ayuda_donar_dinero %in% c(1,2,3)),
+    n_invalidos = sum(!(ayuda_donar_dinero %in% c(1,2,3))),
+    n_validos = sum(ayuda_donar_dinero %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
 # Recode Redes
-variables_a_transformar <- c("in_ayuda_prestar_dinero", "in_ayuda_trabajo", "in_ayuda_donar_dinero")
+variables_a_transformar <- c("ayuda_prestar_dinero", "ayuda_trabajo", "ayuda_donar_dinero")
 
 # Primero convertir valores inválidos a NA (solo mantener 1, 2, 3)
 db <- db %>%
@@ -235,23 +235,23 @@ db <- db %>%
 # Verificar el resultado
 summary(db[, variables_a_transformar]) 
 
-db$sd_ayuda_economica <- rowMeans(db[, c("in_ayuda_prestar_dinero", "in_ayuda_trabajo", "in_ayuda_donar_dinero")], na.rm = TRUE)
+db$ayuda_economica <- rowMeans(db[, c("ayuda_prestar_dinero", "ayuda_trabajo", "ayuda_donar_dinero")], na.rm = TRUE)
 
-frq(db$sd_ayuda_economica)
+frq(db$ayuda_economica)
 
 # confianza_inter
 
 db %>% 
   group_by(ola) %>% 
-  select(in_conf_inter_general, in_conf_inter_altruismo) %>% 
+  select(conf_inter_general, conf_inter_altruismo) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_conf_inter_general %in% c(1,2,3))),
-    n_validos = sum(in_conf_inter_general %in% c(1,2,3)),
+    n_invalidos = sum(!(conf_inter_general %in% c(1,2,3))),
+    n_validos = sum(conf_inter_general %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -260,14 +260,14 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_conf_inter_altruismo %in% c(1,2,3))),
-    n_validos = sum(in_conf_inter_altruismo %in% c(1,2,3)),
+    n_invalidos = sum(!(conf_inter_altruismo %in% c(1,2,3))),
+    n_validos = sum(conf_inter_altruismo %in% c(1,2,3)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
 # Recode Redes - Primero recodificar orden correcto (1=1, 2=3, 3=2)
-variables_a_transformar <- c("in_conf_inter_general", "in_conf_inter_altruismo")
+variables_a_transformar <- c("conf_inter_general", "conf_inter_altruismo")
 
 db <- db %>%
   mutate(across(all_of(variables_a_transformar), 
@@ -286,20 +286,20 @@ db <- db %>%
 # Verificar el resultado
 summary(db[, variables_a_transformar]) 
 
-db$sd_confianza_inter <- rowMeans(db[, c("in_conf_inter_general", "in_conf_inter_altruismo")], na.rm = TRUE)
+db$confianza_inter <- rowMeans(db[, c("conf_inter_general", "conf_inter_altruismo")], na.rm = TRUE)
 
-frq(db$sd_confianza_inter)
+frq(db$confianza_inter)
 
 
 # Redes Sociales
 db %>% 
   group_by(ola) %>% 
-  select(sd_comportamiento_prosocial, sd_ayuda_economica, sd_confianza_inter) %>% 
+  select(comportamiento_prosocial, ayuda_economica, confianza_inter) %>% 
   frq()
 
-db$di_redes_sociales <- rowMeans(db[, c("sd_comportamiento_prosocial", "sd_ayuda_economica", "sd_confianza_inter")], na.rm = TRUE)
+db$redes_sociales <- rowMeans(db[, c("comportamiento_prosocial", "ayuda_economica", "confianza_inter")], na.rm = TRUE)
 
-frq(db$di_redes_sociales)
+frq(db$redes_sociales)
 
 #----Seguridad-----
 
@@ -307,15 +307,15 @@ frq(db$di_redes_sociales)
 
 db %>% 
   group_by(ola) %>% 
-  select(in_seg_seguridad_sat, in_seg_seguridad_perc) %>% 
+  select(seg_seguridad_sat, seg_seguridad_perc) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_seg_seguridad_sat %in% c(1:5))),
-    n_validos = sum(in_seg_seguridad_sat %in% c(1:5)),
+    n_invalidos = sum(!(seg_seguridad_sat %in% c(1:5))),
+    n_validos = sum(seg_seguridad_sat %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -324,29 +324,29 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_seg_seguridad_perc %in% c(1:5))),
-    n_validos = sum(in_seg_seguridad_perc %in% c(1:5)),
+    n_invalidos = sum(!(seg_seguridad_perc %in% c(1:5))),
+    n_validos = sum(seg_seguridad_perc %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
-db$sd_seguridad_sub <- rowMeans(db[, c("in_seg_seguridad_sat", "in_seg_seguridad_perc")], na.rm = TRUE)
+db$seguridad_sub <- rowMeans(db[, c("seg_seguridad_sat", "seg_seguridad_perc")], na.rm = TRUE)
 
-frq(db$sd_seguridad_sub)
+frq(db$seguridad_sub)
 
 # seguridad_obj
 
 db %>% 
   group_by(ola) %>% 
-  select(in_seg_peleas_calle, in_seg_asaltos, in_seg_trafico_drogas) %>% 
+  select(seg_peleas_calle, seg_asaltos, seg_trafico_drogas) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_seg_peleas_calle %in% c(1:5))),
-    n_validos = sum(in_seg_peleas_calle %in% c(1:5)),
+    n_invalidos = sum(!(seg_peleas_calle %in% c(1:5))),
+    n_validos = sum(seg_peleas_calle %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -355,8 +355,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_seg_asaltos %in% c(1:5))),
-    n_validos = sum(in_seg_asaltos %in% c(1:5)),
+    n_invalidos = sum(!(seg_asaltos %in% c(1:5))),
+    n_validos = sum(seg_asaltos %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -365,8 +365,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_seg_trafico_drogas %in% c(1:5))),
-    n_validos = sum(in_seg_trafico_drogas %in% c(1:5)),
+    n_invalidos = sum(!(seg_trafico_drogas %in% c(1:5))),
+    n_validos = sum(seg_trafico_drogas %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -375,32 +375,54 @@ db %>%
 # Original: 1=Nunca, 2=Casi nunca, 3=A veces, 4=Casi siempre, 5=Siempre (problemas)
 # Invertido: 1=Siempre, 2=Casi siempre, 3=A veces, 4=Casi nunca, 5=Nunca (problemas)
 # Ahora: Valores altos = Mayor seguridad (menos problemas)
-
 db <- db %>%
   mutate(
-    in_seg_peleas_calle = sjmisc::rec(in_seg_peleas_calle, rec = "rev"),
-    in_seg_asaltos = sjmisc::rec(in_seg_asaltos, rec = "rev"),
-    in_seg_trafico_drogas = sjmisc::rec(in_seg_trafico_drogas, rec = "rev"))
+    seg_peleas_calle = 6 - seg_peleas_calle,
+    seg_asaltos = 6 - seg_asaltos,
+    seg_trafico_drogas = 6 - seg_trafico_drogas
+  )
 
-frq(db$in_seg_peleas_calle)
-frq(db$in_seg_asaltos)
-frq(db$in_seg_trafico_drogas)
+# Actualizar las etiquetas después de la inversión
+etiquetas_invertidas <- c(
+  "Siempre" = 1,
+  "Casi siempre" = 2, 
+  "A veces" = 3,
+  "Casi nunca" = 4,
+  "Nunca" = 5
+)
 
-db$sd_seguridad_obj <- rowMeans(db[, c("in_seg_peleas_calle", "in_seg_asaltos", "in_seg_trafico_drogas")], na.rm = TRUE)
-db$sd_seguridad_obj <- (round(db$sd_seguridad_obj * 2) / 2)
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$seg_peleas_calle <- sjlabelled::set_labels(db$seg_peleas_calle, labels = etiquetas_invertidas)
+db$seg_asaltos <- sjlabelled::set_labels(db$seg_asaltos, labels = etiquetas_invertidas)
+db$seg_trafico_drogas <- sjlabelled::set_labels(db$seg_trafico_drogas, labels = etiquetas_invertidas)
 
-frq(db$sd_seguridad_obj)
+# Verificar la inversión de escala
+cat("=== VERIFICACIÓN DE INVERSIÓN DE ESCALA ===\n")
+cat("Ahora: 5=Nunca problemas (muy seguro), 1=Siempre problemas (muy inseguro)\n")
+cat("Rango de valores después de inversión:\n")
+cat("peleas_calle:", range(db$seg_peleas_calle, na.rm = TRUE), "\n")
+cat("asaltos:", range(db$seg_asaltos, na.rm = TRUE), "\n")
+cat("trafico_drogas:", range(db$seg_trafico_drogas, na.rm = TRUE), "\n")
+
+# Verificar distribución por ola
+cat("\nDistribución de peleas_calle por ola (después de inversión):\n")
+print(table(db$ola, db$seg_peleas_calle, useNA = "ifany"))
+
+db$seguridad_obj <- rowMeans(db[, c("seg_peleas_calle", "seg_asaltos", "seg_trafico_drogas")], na.rm = TRUE)
+db$seguridad_obj <- (round(db$seguridad_obj * 2) / 2)
+
+frq(db$seguridad_obj)
 
 # Seguridad Pública
 
 db %>% 
   group_by(ola) %>% 
-  select(sd_seguridad_sub, sd_seguridad_obj) %>% 
+  select(seguridad_sub, seguridad_obj) %>% 
   frq()
 
-db$di_seguridad_pub <- rowMeans(db[, c("sd_seguridad_sub", "sd_seguridad_obj")], na.rm = TRUE)
+db$seguridad_pub <- rowMeans(db[, c("seguridad_sub", "seguridad_obj")], na.rm = TRUE)
 
-frq(db$di_seguridad_pub)
+frq(db$seguridad_pub)
 
 #-----Vínculos Territoriales-----
 
@@ -408,15 +430,15 @@ frq(db$di_seguridad_pub)
 
 db %>% 
   group_by(ola) %>% 
-  select(in_bar_ideal, in_bar_integracion, in_bar_identidad, in_bar_pertenencia) %>% 
+  select(bar_ideal, bar_integracion, bar_identidad, bar_pertenencia) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_ideal %in% c(1:5))),
-    n_validos = sum(in_bar_ideal %in% c(1:5)),
+    n_invalidos = sum(!(bar_ideal %in% c(1:5))),
+    n_validos = sum(bar_ideal %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -425,8 +447,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_integracion %in% c(1:5))),
-    n_validos = sum(in_bar_integracion %in% c(1:5)),
+    n_invalidos = sum(!(bar_integracion %in% c(1:5))),
+    n_validos = sum(bar_integracion %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -435,8 +457,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_identidad %in% c(1:5))),
-    n_validos = sum(in_bar_identidad %in% c(1:5)),
+    n_invalidos = sum(!(bar_identidad %in% c(1:5))),
+    n_validos = sum(bar_identidad %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -445,31 +467,31 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_pertenencia %in% c(1:5))),
-    n_validos = sum(in_bar_pertenencia %in% c(1:5)),
+    n_invalidos = sum(!(bar_pertenencia %in% c(1:5))),
+    n_validos = sum(bar_pertenencia %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
 
-db$sd_sentido_pertenencia <- rowMeans(db[, c("in_bar_ideal", "in_bar_integracion", "in_bar_identidad", "in_bar_pertenencia")], na.rm = TRUE)
-db$sd_sentido_pertenencia <- (round(db$sd_sentido_pertenencia * 2) / 2)
+db$sentido_pertenencia <- rowMeans(db[, c("bar_ideal", "bar_integracion", "bar_identidad", "bar_pertenencia")], na.rm = TRUE)
+db$sentido_pertenencia <- (round(db$sentido_pertenencia * 2) / 2)
 
-frq(db$sd_sentido_pertenencia)
+frq(db$sentido_pertenencia)
 
 
 # satisfaccion_barrio
 db %>% 
   group_by(ola) %>% 
-  select(in_bar_amigos, in_bar_sociable, in_bar_cordial, in_bar_colaborador) %>% 
+  select(bar_amigos, bar_sociable, bar_cordial, bar_colaborador) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_amigos %in% c(1:5))),
-    n_validos = sum(in_bar_amigos %in% c(1:5)),
+    n_invalidos = sum(!(bar_amigos %in% c(1:5))),
+    n_validos = sum(bar_amigos %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -478,8 +500,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_sociable %in% c(1:5))),
-    n_validos = sum(in_bar_sociable %in% c(1:5)),
+    n_invalidos = sum(!(bar_sociable %in% c(1:5))),
+    n_validos = sum(bar_sociable %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -488,8 +510,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_cordial %in% c(1:5))),
-    n_validos = sum(in_bar_cordial %in% c(1:5)),
+    n_invalidos = sum(!(bar_cordial %in% c(1:5))),
+    n_validos = sum(bar_cordial %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -498,26 +520,26 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_bar_colaborador %in% c(1:5))),
-    n_validos = sum(in_bar_colaborador %in% c(1:5)),
+    n_invalidos = sum(!(bar_colaborador %in% c(1:5))),
+    n_validos = sum(bar_colaborador %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
-db$sd_satisfaccion_barrio <- rowMeans(db[, c("in_bar_amigos", "in_bar_sociable", "in_bar_cordial", "in_bar_colaborador")], na.rm = TRUE)
-db$sd_satisfaccion_barrio <- (round(db$sd_satisfaccion_barrio * 2) / 2)
+db$satisfaccion_barrio <- rowMeans(db[, c("bar_amigos", "bar_sociable", "bar_cordial", "bar_colaborador")], na.rm = TRUE)
+db$satisfaccion_barrio <- (round(db$satisfaccion_barrio * 2) / 2)
 
-frq(db$sd_satisfaccion_barrio)
+frq(db$satisfaccion_barrio)
 
 # Vínculos Territoriales
 
 db %>% 
   group_by(ola) %>% 
-  select(sd_sentido_pertenencia, sd_satisfaccion_barrio) %>% 
+  select(sentido_pertenencia, satisfaccion_barrio) %>% 
   frq()
 
-db$di_vinculos_territ <- rowMeans(db[, c("sd_sentido_pertenencia", "sd_satisfaccion_barrio")], na.rm = TRUE)
-frq(db$di_vinculos_territ)
+db$vinculos_territ <- rowMeans(db[, c("sentido_pertenencia", "satisfaccion_barrio")], na.rm = TRUE)
+frq(db$vinculos_territ)
 
 # COHESIÓN VERTICAL
 
@@ -525,15 +547,15 @@ frq(db$di_vinculos_territ)
 
 db %>% 
   group_by(ola) %>% 
-  select(in_conf_inst_gobierno, in_conf_inst_congreso, in_conf_inst_pp) %>% 
+  select(conf_inst_gobierno, conf_inst_congreso, conf_inst_pp) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_conf_inst_gobierno %in% c(1:5))),
-    n_validos = sum(in_conf_inst_gobierno %in% c(1:5)),
+    n_invalidos = sum(!(conf_inst_gobierno %in% c(1:5))),
+    n_validos = sum(conf_inst_gobierno %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -542,8 +564,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_conf_inst_congreso %in% c(1:5))),
-    n_validos = sum(in_conf_inst_congreso %in% c(1:5)),
+    n_invalidos = sum(!(conf_inst_congreso %in% c(1:5))),
+    n_validos = sum(conf_inst_congreso %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -552,30 +574,29 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_conf_inst_pp %in% c(1:5))),
-    n_validos = sum(in_conf_inst_pp %in% c(1:5)),
+    n_invalidos = sum(!(conf_inst_pp %in% c(1:5))),
+    n_validos = sum(conf_inst_pp %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
-db$sd_conf_inst_pol <- rowMeans(db[, c("in_conf_inst_gobierno", "in_conf_inst_congreso", "in_conf_inst_pp")], na.rm = TRUE)
+db$conf_inst_pol <- rowMeans(db[, c("conf_inst_gobierno", "conf_inst_congreso", "conf_inst_pp")], na.rm = TRUE)
 
-frq(db$sd_conf_inst_pol)
-db$di_conf_inst_pol <- db$sd_conf_inst_pol
+frq(db$conf_inst_pol)
 
 #-----Participación Política-----
 
 db %>% 
   group_by(ola) %>% 
-  select(in_part_firma_peticion, in_part_asiste_marcha, in_part_huelga, in_opinion_rrss) %>% 
+  select(part_firma_peticion, part_asiste_marcha, part_huelga, opinion_rrss) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_part_firma_peticion %in% c(1:5))),
-    n_validos = sum(in_part_firma_peticion %in% c(1:5)),
+    n_invalidos = sum(!(part_firma_peticion %in% c(1:5))),
+    n_validos = sum(part_firma_peticion %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -584,8 +605,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_part_asiste_marcha %in% c(1:5))),
-    n_validos = sum(in_part_asiste_marcha %in% c(1:5)),
+    n_invalidos = sum(!(part_asiste_marcha %in% c(1:5))),
+    n_validos = sum(part_asiste_marcha %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -594,8 +615,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_part_huelga %in% c(1:5))),
-    n_validos = sum(in_part_huelga %in% c(1:5)),
+    n_invalidos = sum(!(part_huelga %in% c(1:5))),
+    n_validos = sum(part_huelga %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -604,29 +625,29 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_opinion_rrss %in% c(1:5))),
-    n_validos = sum(in_opinion_rrss %in% c(1:5)),
+    n_invalidos = sum(!(opinion_rrss %in% c(1:5))),
+    n_validos = sum(opinion_rrss %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
-db$sd_pp_politica <- rowMeans(db[, c("in_part_firma_peticion", "in_part_asiste_marcha", "in_part_huelga", "in_opinion_rrss")], na.rm = TRUE)
+db$pp_politica <- rowMeans(db[, c("part_firma_peticion", "part_asiste_marcha", "part_huelga", "opinion_rrss")], na.rm = TRUE)
 
-frq(db$sd_pp_politica)
+frq(db$pp_politica)
 
 #-----Autoeficacia Política-----
 
 db %>% 
   group_by(ola) %>% 
-  select(in_autoef_voto_deber, in_autoef_voto_influye, in_autoef_voto_expresion) %>% 
+  select(autoef_voto_deber, autoef_voto_influye, autoef_voto_expresion) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autoef_voto_deber %in% c(1:5))),
-    n_validos = sum(in_autoef_voto_deber %in% c(1:5)),
+    n_invalidos = sum(!(autoef_voto_deber %in% c(1:5))),
+    n_validos = sum(autoef_voto_deber %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -635,8 +656,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autoef_voto_influye %in% c(1:5))),
-    n_validos = sum(in_autoef_voto_influye %in% c(1:5)),
+    n_invalidos = sum(!(autoef_voto_influye %in% c(1:5))),
+    n_validos = sum(autoef_voto_influye %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -645,29 +666,29 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autoef_voto_expresion %in% c(1:5))),
-    n_validos = sum(in_autoef_voto_expresion %in% c(1:5)),
+    n_invalidos = sum(!(autoef_voto_expresion %in% c(1:5))),
+    n_validos = sum(autoef_voto_expresion %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
-db$sd_auto_efic <- rowMeans(db[, c("in_autoef_voto_deber", "in_autoef_voto_influye", "in_autoef_voto_expresion")], na.rm = TRUE)
+db$auto_efic <- rowMeans(db[, c("autoef_voto_deber", "autoef_voto_influye", "autoef_voto_expresion")], na.rm = TRUE)
 
-frq(db$sd_auto_efic)
+frq(db$auto_efic)
 
 #-----Interés en Política-----
 
 db %>% 
   group_by(ola) %>% 
-  select(in_intpol_interes_politica, in_intpol_hablar_politica, in_intpol_infopolitica_medios) %>% 
+  select(intpol_interes_politica, intpol_hablar_politica, intpol_infopolitica_medios) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_intpol_interes_politica %in% c(1:5))),
-    n_validos = sum(in_intpol_interes_politica %in% c(1:5)),
+    n_invalidos = sum(!(intpol_interes_politica %in% c(1:5))),
+    n_validos = sum(intpol_interes_politica %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -676,8 +697,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_intpol_hablar_politica %in% c(1:5))),
-    n_validos = sum(in_intpol_hablar_politica %in% c(1:5)),
+    n_invalidos = sum(!(intpol_hablar_politica %in% c(1:5))),
+    n_validos = sum(intpol_hablar_politica %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -686,41 +707,41 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_intpol_infopolitica_medios %in% c(1:5))),
-    n_validos = sum(in_intpol_infopolitica_medios %in% c(1:5)),
+    n_invalidos = sum(!(intpol_infopolitica_medios %in% c(1:5))),
+    n_validos = sum(intpol_infopolitica_medios %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
 
 
-db$sd_int_pol <- rowMeans(db[, c("in_intpol_interes_politica", "in_intpol_hablar_politica", "in_intpol_infopolitica_medios")], na.rm = TRUE)
+db$int_pol <- rowMeans(db[, c("intpol_interes_politica", "intpol_hablar_politica", "intpol_infopolitica_medios")], na.rm = TRUE)
 
-frq(db$sd_int_pol)
+frq(db$int_pol)
 
 #-----Practicas y actitudes politicas-----
 
 db %>% 
   group_by(ola) %>% 
-  select(sd_pp_politica, sd_auto_efic, sd_int_pol) %>% 
+  select(pp_politica, auto_efic, int_pol) %>% 
   frq()
 
-db$di_prac_acti_pol <- rowMeans(db[, c("sd_pp_politica", "sd_auto_efic", "sd_int_pol")], na.rm = TRUE)
+db$prac_acti_pol <- rowMeans(db[, c("pp_politica", "auto_efic", "int_pol")], na.rm = TRUE)
 
-frq(db$di_prac_acti_pol)
+frq(db$prac_acti_pol)
 
 #-----Preferencias Autoritarias-----
 
 db %>% 
   group_by(ola) %>% 
-  select(in_autor_gobierno_firme, in_autor_mandatario_fuerte, in_autor_vida_disciplinar) %>% 
+  select(autor_gobierno_firme, autor_mandatario_fuerte, autor_vida_disciplinar) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autor_gobierno_firme %in% c(1:5))),
-    n_validos = sum(in_autor_gobierno_firme %in% c(1:5)),
+    n_invalidos = sum(!(autor_gobierno_firme %in% c(1:5))),
+    n_validos = sum(autor_gobierno_firme %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -729,8 +750,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autor_mandatario_fuerte %in% c(1:5))),
-    n_validos = sum(in_autor_mandatario_fuerte %in% c(1:5)),
+    n_invalidos = sum(!(autor_mandatario_fuerte %in% c(1:5))),
+    n_validos = sum(autor_mandatario_fuerte %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -739,8 +760,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_autor_vida_disciplinar %in% c(1:5))),
-    n_validos = sum(in_autor_vida_disciplinar %in% c(1:5)),
+    n_invalidos = sum(!(autor_vida_disciplinar %in% c(1:5))),
+    n_validos = sum(autor_vida_disciplinar %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -749,39 +770,50 @@ db %>%
 # Original: 1=Totalmente en desacuerdo, 2=En desacuerdo, 3=Ni acuerdo ni desacuerdo, 4=De acuerdo, 5=Totalmente de acuerdo
 # Invertido: 1=Totalmente de acuerdo, 2=De acuerdo, 3=Ni acuerdo ni desacuerdo, 4=En desacuerdo, 5=Totalmente en desacuerdo
 # Ahora: Valores altos = Menor autoritarismo (más democrático)
-
-db %>% 
-  select(in_autor_gobierno_firme, in_autor_mandatario_fuerte, in_autor_vida_disciplinar) %>% 
-  frq()
-
 db <- db %>%
   mutate(
-    in_autor_gobierno_firme = sjmisc::rec(in_autor_gobierno_firme, rec = "rev"),
-    in_autor_mandatario_fuerte = sjmisc::rec(in_autor_mandatario_fuerte, rec = "rev"),
-    in_autor_vida_disciplinar = sjmisc::rec(in_autor_vida_disciplinar, rec = "rev"))
+    autor_gobierno_firme = 6 - autor_gobierno_firme,
+    autor_mandatario_fuerte = 6 - autor_mandatario_fuerte,
+    autor_vida_disciplinar = 6 - autor_vida_disciplinar
+  )
 
-db %>% 
-  select(in_autor_gobierno_firme, in_autor_mandatario_fuerte, in_autor_vida_disciplinar) %>% 
-  frq()
+# Actualizar las etiquetas después de la inversión
+etiquetas_autoritarias_invertidas <- c(
+  "Totalmente de acuerdo" = 1,
+  "De acuerdo" = 2,
+  "Ni acuerdo ni desacuerdo" = 3,
+  "En desacuerdo" = 4,
+  "Totalmente en desacuerdo" = 5
+)
 
-db$sd_pref_autor <- rowMeans(db[, c("in_autor_gobierno_firme", "in_autor_mandatario_fuerte", "in_autor_vida_disciplinar")], na.rm = TRUE)
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$autor_gobierno_firme <- sjlabelled::set_labels(db$autor_gobierno_firme, labels = etiquetas_autoritarias_invertidas)
+db$autor_mandatario_fuerte <- sjlabelled::set_labels(db$autor_mandatario_fuerte, labels = etiquetas_autoritarias_invertidas)
+db$autor_vida_disciplinar <- sjlabelled::set_labels(db$autor_vida_disciplinar, labels = etiquetas_autoritarias_invertidas)
 
-frq(db$sd_pref_autor)
-db$di_pref_autor <- db$sd_pref_autor
+# Verificar la inversión
+cat("=== VERIFICACIÓN INVERSIÓN PREFERENCIAS AUTORITARIAS ===\n")
+cat("Ahora: 5=Totalmente en desacuerdo con autoritarismo (más democrático)\n")
+cat("       1=Totalmente de acuerdo con autoritarismo (más autoritario)\n")
+
+
+db$pref_autor <- rowMeans(db[, c("autor_gobierno_firme", "autor_mandatario_fuerte", "autor_vida_disciplinar")], na.rm = TRUE)
+
+frq(db$pref_autor)
 
 #-----Justicia Distributiva-----
 
 db %>% 
   group_by(ola) %>% 
-  select(in_just_pensiones, in_just_educacion, in_just_salud) %>% 
+  select(just_pensiones, just_educacion, just_salud) %>% 
   frq()
 
 db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_just_pensiones %in% c(1:5))),
-    n_validos = sum(in_just_pensiones %in% c(1:5)),
+    n_invalidos = sum(!(just_pensiones %in% c(1:5))),
+    n_validos = sum(just_pensiones %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -790,8 +822,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_just_educacion %in% c(1:5))),
-    n_validos = sum(in_just_educacion %in% c(1:5)),
+    n_invalidos = sum(!(just_educacion %in% c(1:5))),
+    n_validos = sum(just_educacion %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -800,8 +832,8 @@ db %>%
   group_by(ola) %>%
   summarise(
     n_total = n(),
-    n_invalidos = sum(!(in_just_salud %in% c(1:5))),
-    n_validos = sum(in_just_salud %in% c(1:5)),
+    n_invalidos = sum(!(just_salud %in% c(1:5))),
+    n_validos = sum(just_salud %in% c(1:5)),
     total = if_else(sum(n_invalidos, n_validos) == n_total, TRUE, FALSE),
     .groups = "drop"
   )
@@ -810,60 +842,74 @@ db %>%
 # Original: 1=Totalmente en desacuerdo, 2=En desacuerdo, 3=Ni acuerdo ni desacuerdo, 4=De acuerdo, 5=Totalmente de acuerdo
 # Invertido: 1=Totalmente de acuerdo, 2=De acuerdo, 3=Ni acuerdo ni desacuerdo, 4=En desacuerdo, 5=Totalmente en desacuerdo
 # Ahora: Valores altos = Mayor percepción de justicia (más justo)
-
 db <- db %>%
   mutate(
-    in_just_pensiones = sjmisc::rec(in_just_pensiones, rec = "rev"),
-    in_just_educacion = sjmisc::rec(in_just_educacion, rec = "rev"),
-    in_just_salud = sjmisc::rec(in_just_salud, rec = "rev"))
+    just_pensiones = 6 - just_pensiones,
+    just_educacion = 6 - just_educacion,
+    just_salud = 6 - just_salud
+  )
 
-db$sd_just_distrib <- rowMeans(db[, c("in_just_pensiones", "in_just_educacion", "in_just_salud")], na.rm = TRUE)
+# Actualizar las etiquetas después de la inversión
+etiquetas_justicia_invertidas <- c(
+  "Totalmente de acuerdo" = 1,
+  "De acuerdo" = 2,
+  "Ni acuerdo ni desacuerdo" = 3,
+  "En desacuerdo" = 4,
+  "Totalmente en desacuerdo" = 5
+)
 
-frq(db$sd_just_distrib)
+# Aplicar las nuevas etiquetas a las variables invertidas
+db$just_pensiones <- sjlabelled::set_labels(db$just_pensiones, labels = etiquetas_justicia_invertidas)
+db$just_educacion <- sjlabelled::set_labels(db$just_educacion, labels = etiquetas_justicia_invertidas)
+db$just_salud <- sjlabelled::set_labels(db$just_salud, labels = etiquetas_justicia_invertidas)
 
-db$di_just_distrib <- db$sd_just_distrib
+# Verificar la inversión
+cat("=== VERIFICACIÓN INVERSIÓN JUSTICIA DISTRIBUTIVA ===\n")
+cat("Ahora: 5=Totalmente en desacuerdo con injusticia (más justo)\n")
+cat("       1=Totalmente de acuerdo con injusticia (menos justo)\n")
+
+db$just_distrib <- rowMeans(db[, c("just_pensiones", "just_educacion", "just_salud")], na.rm = TRUE)
+
+frq(db$just_distrib)
 
 ###COHESIÓN HORIZONTAL###
 
 db %>% 
   group_by(ola) %>% 
-  select(di_seguridad_pub, di_vinculos_territ, di_redes_sociales) %>% 
+  select(seguridad_pub, vinculos_territ, redes_sociales) %>% 
   frq()
 
-db$ar_coh_horiz <- rowMeans(db[, c("di_seguridad_pub", "di_vinculos_territ", "di_redes_sociales")], na.rm = TRUE)
-hist(db$ar_coh_horiz)
+db$coh_horiz <- rowMeans(db[, c("seguridad_pub", "vinculos_territ", "redes_sociales")], na.rm = TRUE)
+hist(db$coh_horiz)
 
-psych::describeBy(db$ar_coh_horiz, group = db$ola)
+psych::describeBy(db$coh_horiz, group = db$ola)
 
 ###COHESION VERTICAL###
 db %>% 
   group_by(ola) %>% 
-  select(sd_conf_inst_pol, sd_pp_politica, sd_auto_efic, sd_int_pol, sd_pref_autor, sd_just_distrib) %>% 
+  select(conf_inst_pol, pp_politica, auto_efic, int_pol, pref_autor, just_distrib) %>% 
   frq()
 
-db$ar_coh_vert <- rowMeans(db[, c("sd_conf_inst_pol", "sd_pp_politica", "sd_auto_efic", "sd_int_pol", "sd_pref_autor", "sd_just_distrib")], na.rm = TRUE)
-hist(db$ar_coh_vert)
+db$coh_vert <- rowMeans(db[, c("conf_inst_pol", "pp_politica", "auto_efic", "int_pol", "pref_autor", "just_distrib")], na.rm = TRUE)
+hist(db$coh_vert)
 
-psych::describeBy(db$ar_coh_vert, group = db$ola)
+psych::describeBy(db$coh_vert, group = db$ola)
 
 ###COHESION GENERAL###
-
 db %>% 
   group_by(ola) %>% 
-  select(ar_coh_horiz, ar_coh_vert) %>% 
+  select(coh_horiz, coh_vert) %>% 
   frq()
 
-db$ar_coh_gral <- rowMeans(db[, c("ar_coh_horiz", "ar_coh_vert")], na.rm = TRUE)
+db$coh_gral <- rowMeans(db[, c("coh_horiz", "coh_vert")], na.rm = TRUE)
 
-hist(db$ar_coh_gral)
-psych::describeBy(db$ar_coh_gral, group = db$ola)
+hist(db$coh_gral)
+psych::describeBy(db$coh_gral, group = db$ola)
 
 # Label Variables
 
-names(db)
-
 # 1. Vector
-variables_recode <- colnames(db[,19:82])
+variables_recode <- colnames(db[,18:79])
 
 # 2. Definir las nuevas etiquetas
 nuevas_etiquetas <- c(
@@ -878,322 +924,18 @@ for (variable in variables_recode) {
 }
 
 # 4. (Opcional) Verificar que una de las variables se haya recodificado correctamente
-frq(db$sd_seguridad_sub)
-frq(db$in_seg_seguridad_sat)
-
-
-################
-# COVARIABLES -------------------------------------------------------------
-################
-
-# 3.1 Educacion
-
-frq(db$educacion)
-
-db <- db %>% 
-  mutate(cine = case_when(educacion %in% c(1,2,3) ~ "Primaria o menos",
-                          educacion %in% c(4,5) ~ "Secundaria",
-                          educacion %in% c(6,7) ~ "Técnica",
-                          educacion %in% c(8,9,10) ~ "Universitaria o más",
-                          TRUE ~ NA_character_),
-         cine = factor(cine, 
-                       levels = c("Primaria o menos",
-                                  "Secundaria",
-                                  "Técnica",
-                                  "Universitaria o más")))
-
-db$cine <-
-  sjlabelled::set_label(x = db$cine,
-                        label = "Educación (CINE)")
-
-frq(db$cine)
-
-db$educ_dic <-
-  car::recode(db$educacion,
-              "c(1,2,3,4,5,6,7)=1;c(8,9,10)=2; c(-888,-999)=NA")
-
-db$educ_dic <-
-  factor(db$educ_dic,
-         labels = c("Menor que universitaria","Universitaria"))
-
-db$educ_dic <-
-  sjlabelled::set_label(x = db$educ_dic,
-                        label = "Educación (dicotómica)")
-
-frq(db$educ_dic)
-
-#Recoding of education to years based on casen 2017.
-
-db$educyear<- as.numeric(
-  car::recode(db$educacion,
-              "1=0;2=4.3;3=7.5;4=9.8;5=12.02;6=13.9;
-               7=14.8;8=14.9;9=16.9;10=19.07;c(-888,-999)=NA",
-              as.numeric = T))
-db$educyear <-
-  sjlabelled::set_label(x = db$educyear,
-                        label = "Educación en años")
-
-frq(db$educyear)
-
-
-# 3.2 Sexo
-frq(db$sexo)
-
-db$sexo <- car::recode(db$sexo, 
-                       recodes = c("1='Hombre'; 2='Mujer'"), 
-                       levels = c("Hombre", "Mujer"),
-                       as.factor = T)
-
-db$sexo <- sjlabelled::set_label(db$sexo, 
-                                 label = "Sexo")
-frq(db$sexo)
-
-# 3.3 Edad
-frq(db$edad)
-
-db$edad_t <- 
-  factor(car::recode(db$edad, 
-                     "18:29=1;30:49=2;50:64=3;65:150=4"),
-         labels = c('18-29', '30-49', '50-64', '65 o más'))
-
-db$edad_t <-
-  sjlabelled::set_label(db$edad_t, 
-                        label = c("Edad (tramos)")) 
-
-frq(db$edad_t)
-
-# 3.4 Ideologia
-frq(db$ideologia)
-
-db$ideologia<-
-  factor(
-    car::recode(
-      db$ideologia,
-      "c(11,12,-888,-999)='No se identifica';c(0,1,2,3,4)='Izquierda';
-     c(5)='Centro';c(6,7,8,9,10)='Derecha'"
-    ),
-    levels = c('Izquierda', 'Centro', 'Derecha', 'No se identifica')
-  )
-
-db$ideologia<- factor(db$ideologia,levels = levels(db$ideologia))
-
-db$ideologia <- 
-  sjlabelled::set_label(x = db$ideologia, 
-                        label = "Identificación política") 
-
-frq(db$ideologia)
-
-# 3.5 Religion
-frq(db$religion)
-
-db <- db %>% 
-  mutate(religion = case_when(religion == 1 ~ "Catolico",
-                              religion == 2 ~ "Evangelico",
-                              religion == 3 ~ "Protestante",
-                              religion == 4 ~ "Judio",
-                              religion == 5 ~ "Creyente no adherente",
-                              religion == 6 ~ "Otra",
-                              religion == 7 ~ "Ateo",
-                              religion == 8 ~ "Agnostico",
-                              religion == 9 ~ "Ninguna",
-                              TRUE ~ NA_character_
-                              
-  )) 
-
-db$religion <- 
-  sjlabelled::set_label(x = db$religion, 
-                        label = "Identificación religiosa") 
-
-frq(db$religion)
-
-# 3.6 Estado civil
-
-frq(db$estado_civil)
-
-db <- db %>% 
-  mutate(estado_civil = case_when(
-    estado_civil %in% c(1,2,3) ~ "Casado/Conviviente",
-    estado_civil == 4 ~ "Soltero",
-    estado_civil %in% c(5,6,7,8,9) ~ "Separado/Divorciado/Viudo/Anulado/Otro",
-    TRUE ~ NA_character_
-    
-  )) 
-
-db$estado_civil <- 
-  sjlabelled::set_label(x = db$estado_civil, 
-                        label = "Estado civil") 
-
-frq(db$estado_civil)
-
-# 3.7 Ingresos
-
-# N Household:
-# Select variables______________________________________________________________
-# Household income_________________________________________
-
-#Impute midpoint of income ranges
-db$m30_rec <-
-  as.numeric(car::recode(db$m30,
-                         "1=110000;2=251000;3=305000;4=355000;5=400000;
-            6=445000;7=490000;8=535000;9=585000;10=640000;11=700000;12=765000;
-            13=845000;14=935000;15=1040000;16=1180000;17=1375000;18=1670000;
-            19=2275000;20=2700000;NA=NA;c(-888,-999)=NA"))
-
-#Impute midpoint of income ranges (2021)
-db$m30b_rec <-
-  as.numeric(car::recode(db$m30b,
-                         "1=125000;2=300000;3=400000;4=575000;5=700000;NA=NA;c(-888,-999)=NA"))
-
-sjmisc::frq(db$m30_rec)
-sjmisc::frq(db$m30b_rec)
-
-#Recode DK/DA of Income to NA
-db$m29_rec <-
-  as.numeric(car::recode(db$m29,"c(-888,-999)=NA"))
-
-#replace NA of income with new imputed variable
-db$m29_imp <- 
-  ifelse(test = !is.na(db$m29_rec),
-         yes =  db$m29_rec,
-         no =  db$m30_rec)
-summary(db$m29_imp)
-
-db$m29_imp <- 
-  ifelse(test = is.na(db$m29_imp),
-         yes =  db$m30b_rec,
-         no =  db$m29_imp)
-summary(db$m29_imp)
-
-# deflate at each year's prices
-library(rvest)
-
-url <- "https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_PRECIOS/MN_CAP_PRECIOS/IPC_EMP_2023/638415285164039007?cbFechaInicio=2016&cbFechaTermino=2025&cbFrecuencia=MONTHLY&cbCalculo=NONE&cbFechaBase="
-
-ipc <- url %>%
-  read_html() %>%
-  html_node("table") %>%
-  html_table() %>% 
-  rename_with(., ~ tolower(gsub(".", "_", .x, fixed = TRUE))) %>% 
-  filter(serie == "Índice IPC General") %>% 
-  mutate(
-    across(
-      .cols = c(everything(), -serie),
-      .fns = ~ as.numeric(str_replace(., ",", "."))
-    )) %>% 
-  select(-sel_) %>% 
-  pivot_longer(., cols = -serie,
-               names_to = "ano_mes",
-               values_to = "ipc") %>% 
-  tidyr::separate(col = "ano_mes", into = c("mes", "ano"))
-
-ipc <- ipc %>% 
-  filter(mes == "dic") %>% 
-  select(ano, ipc)
-
-db <- left_join(db, ipc, by = c("ola" = "ano"))
-
-frq(db$ipc)
-
-# Reshape long to wide
-db_wide <- db %>% 
-  tidyr::pivot_wider(id_cols = c("idencuesta","muestra"),
-                     names_from = "ola",
-                     values_from = names(select(db, tipo_atricion:ipc))
-  )
-
-db_wide$m54_2022 <- db_wide$m54_2023
-
-# reshape from long to wide
-db_long <- db_wide %>%
-  pivot_longer(
-    cols = -c(idencuesta, muestra),
-    names_to = c(".value", "ola"),
-    # Toma TODO lo que va antes del último "_" como nombre de variable,
-    # y lo que va después como la ola (1..7)
-    names_pattern = "^(.*)_(\\d+)$",
-    values_drop_na = T
-  ) %>%
-  mutate(ola = as.integer(ola))
-
-db_long <-
-  db_long %>%
-  mutate(n_hogar =
-           dplyr::case_when(ola == 2016 ~ nhogar1,
-                            ola == 2017 ~ m46_nhogar,
-                            ola == 2018 ~ m54,
-                            ola == 2019 ~ m54,
-                            ola == 2021 ~ m54,
-                            ola == 2022 ~ m54,
-                            ola == 2023 ~ m54))
-sjmisc::frq(db_long$n_hogar)
-
-#Recode DK/DA to NA
-db_long$n_hogar_r<-
-  car::recode(db_long$n_hogar,"c(-888,-999)=NA")
-
-# Per capita household income:
-db_long$ing_pc <- 
-  (db_long$m29_imp/db_long$n_hogar_r)
-
-db_long$ing_pc <-
-  sjlabelled::set_label(x = db_long$ing_pc,
-                        label = "Ingreso por hogar per cápita")  
-
-sjmisc::descr(db_long$ing_pc)
-
-# Compute income groups: 10% bottom, 40% lower middle, 40% upper middle, 10% top
-db_long <- db_long %>% 
-  group_by(ola) %>% 
-  mutate(
-    percentil = ntile(ing_pc, 10),
-    grupo_ingreso = case_when(
-      percentil == 1 ~ "Bottom 10%",
-      percentil %in% c(2, 3, 4, 5) ~ "Lower Middle 40%",
-      percentil %in% c(6, 7, 8, 9) ~ "Upper Middle 40%", 
-      percentil == 10 ~ "Top 10%",
-      TRUE ~ NA_character_
-    )
-  ) %>% 
-  ungroup()
-
-db_long$grupo_ingreso <- 
-  factor(db_long$grupo_ingreso,
-         levels = c('Bottom 10%', 'Lower Middle 40%', 'Upper Middle 40%', 'Top 10%'))
-
-db_long$grupo_ingreso <- 
-  sjlabelled::set_label(x = db_long$grupo_ingreso,
-                        label = "Grupos de ingreso (10%-40%-40%-10%)")  
-
-sjmisc::frq(db_long$grupo_ingreso)
-
-# Include missing cases for income groups
-db_long$grupo_ingreso1 <- 
-  car::recode(db_long$grupo_ingreso, 
-              "'Bottom 10%'='Bottom 10%';'Lower Middle 40%'='Lower Middle 40%';'Upper Middle 40%'='Upper Middle 40%';'Top 10%'='Top 10%'; NA='GNA'")
-
-db_long$grupo_ingreso1 <- 
-  sjlabelled::set_label(x = db_long$grupo_ingreso1,
-                        label = "Grupos de ingreso con NA (10%-40%-40%-10%)")  
-
-sjmisc::frq(db_long$grupo_ingreso1)
-
-frq(db_long$ola) #ok
+print(sjlabelled::get_labels(db$seg_seguridad_sat))
 
 # 3.4 Check BBDD
 
-glimpse(db_long)
+glimpse(db)
 
-sjPlot::view_df(db_long,
+sjPlot::view_df(db,
                 show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
 
-db_long <- db_long %>%
-  group_by(idencuesta) %>%             # Agrupar por el identificador del participante
-  mutate(n_participaciones = n()) %>%  # Contar el número de filas (participaciones) por participante
-  ungroup()
+db_madre <- db
 
-db_long <- db_long %>% 
-  filter(n_participaciones>=3) %>% 
-  select(-n_participaciones) # quedarse con casos que hayan participado >=3 veces
+save(db_madre, file = here ("data/bases-vis-elsoc/db_madre.RData"))
 
 # 4. Final data -----------------------------------------------------------
 
@@ -1203,27 +945,45 @@ db_long <- db_long %>%
 # BASE 1a: Promedios por ID de encuesta
 # ==========================================
 
-db_long <- db_long %>% 
-  select(-c(13:18,87:94))
+db <- db %>%
+  group_by(idencuesta) %>%             # Agrupar por el identificador del participante
+  mutate(n_participaciones = n()) %>%  # Contar el número de filas (participaciones) por participante
+  ungroup()
 
-glimpse(db_long)
+db <- db %>% 
+  filter(n_participaciones>=3) %>% 
+  select(-n_participaciones) # quedarse con casos que hayan participado >=3 veces
 
-db_madre <- db_long
-
-save(db_madre, file = here ("data/bases-vis-elsoc/db_madre.RData"))
+# Ver resultado
+head(db)
+dim(db)
 
 # ==========================================
 # BASE 2b: Promedios por ola (sin NAs)
 # ==========================================
 
-db_promedios_ola <- db_long %>%
+db_promedios_ola <- db %>%
+  select(-c(idencuesta, 
+            muestra, 
+            tipo_atricion, 
+            segmento,
+            estrato,
+            educacion,
+            edad, 
+            sexo, 
+            ideologia, 
+            religion, 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>%  # Excluir variables
   group_by(ola) %>%
-  summarise(
-    across(
-      .cols = starts_with(c("in_", "sd_", "di_", "ar_")),
-      .fns = ~mean(., na.rm = TRUE),
+  summarise(across(where(is.numeric), 
+                   ~mean(.x, na.rm = TRUE),
                    .names = "{.col}"))
-
 # Ver resultado
 head(db_promedios_ola)
 dim(db_promedios_ola)
@@ -1233,7 +993,42 @@ dim(db_promedios_ola)
 # ==========================================
 
 # En RData
+save(db, file = here ("data/bases-vis-elsoc/db_long.RData"))
 save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData"))
+
+# ==========================================
+# BASE 3: Promedios por ola y tipo de muestra (sin NAs)
+# ==========================================
+
+db_promedios_ola_muestra <- db %>%
+  select(-c(idencuesta, 
+            tipo_atricion, 
+            segmento,
+            estrato,
+            educacion,
+            edad, 
+            sexo, 
+            ideologia, 
+            religion, 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
+  group_by(ola, muestra) %>%
+  summarise(across(where(is.numeric), 
+                   ~mean(.x, na.rm = TRUE),
+                   .names = "{.col}"),
+            .groups = "drop")
+
+# Ver resultado
+head(db_promedios_ola_muestra)
+dim(db_promedios_ola_muestra)
+
+# Guardar
+save(db_promedios_ola_muestra, file = here ("data/bases-vis-elsoc/db_promedios_ola_muestra.RData"))
 
 # ==============================================
 # BASES: Recodificaciones Alto-Medio-Bajo (1-5)
@@ -1241,29 +1036,29 @@ save(db_promedios_ola, file = here ("data/bases-vis-elsoc/db_promedios_ola.RData
 
 # 1. Define el vector con todas las variables que vas a modificar
 todas_las_variables <- c(
-  "sd_seguridad_sub", "sd_seguridad_obj", "di_seguridad_pub",
-  "sd_sentido_pertenencia", "sd_satisfaccion_barrio", "di_vinculos_territ",
-  "sd_comportamiento_prosocial", "sd_ayuda_economica", "sd_confianza_inter", "di_redes_sociales",
-  "sd_conf_inst_pol", "di_conf_inst_pol",
-  "sd_pp_politica", "sd_auto_efic", "sd_int_pol", "di_prac_acti_pol",
-  "sd_pref_autor", "di_pref_autor",
-  "sd_just_distrib", "di_just_distrib",
-  "ar_coh_horiz", "ar_coh_vert", "ar_coh_gral"
+  "seguridad_sub", "seguridad_obj", "seguridad_pub",
+  "sentido_pertenencia", "satisfaccion_barrio", "vinculos_territ",
+  "comportamiento_prosocial", "ayuda_economica", "confianza_inter", "redes_sociales",
+  "conf_inst_pol",
+  "pp_politica", "auto_efic", "int_pol", "prac_acti_pol",
+  "pref_autor",
+  "just_pensiones", "just_educacion", "just_salud", "just_distrib", 
+  "coh_horiz", "coh_vert", "coh_gral"
 )
 
 # 2. Recodifica todas las variables de una vez
-db_categ <- db_long %>%
+db_categ <- db %>%
   mutate(across(all_of(todas_las_variables), ~case_when(
     .x >= 3 ~ "Alto",
     .x < 3  ~ "Bajo"
   ))) %>% 
-  select(c(1:12, 76:83),all_of(todas_las_variables))
+  select(1:19, all_of(todas_las_variables))
 
 db_categ <- db_categ %>% 
   mutate_at(.vars = todas_las_variables, .funs = ~ as_factor(.))
 
 # 3. (Opcional) Revisa el resultado en una de las variables
-frq(db_categ$sd_seguridad_sub)
+frq(db_categ$seguridad_sub)
 
 # ==========================================
 # BASE 1 RECODE: Promedios por ID de encuesta
@@ -1284,9 +1079,24 @@ dim(db_categ)
 # ==========================================
 
 db_categ_ola <- db_categ %>%
-  select(ola, all_of(todas_las_variables)) %>% 
+  select(-c(idencuesta, 
+            muestra, 
+            tipo_atricion, 
+            segmento,
+            educacion,
+            edad, 
+            sexo, 
+            ideologia, 
+            religion, 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
   pivot_longer(
-    cols = -ola,
+    cols = -1,
     names_to = "variable",
     values_to = "valor"
   ) %>% 
@@ -1314,32 +1124,76 @@ db_categ_ola
 save(db_categ, file = here ("data/bases-vis-elsoc/db_categ.RData"))
 save(db_categ_ola, file = here ("data/bases-vis-elsoc/db_categ_ola.RData"))
 
+# ==========================================
+# BASE 3 RECODE: Promedios por ola y tipo de muestra (sin NAs)
+# ==========================================
+
+db_categ_ola_muestra <- db_categ %>%
+  select(-c(idencuesta, 
+            tipo_atricion, 
+            segmento,
+            educacion,
+            edad, 
+            sexo, 
+            ideologia, 
+            religion, 
+            estado_civil,
+            nhogar1,
+            m46_nhogar,
+            m54,
+            m30,
+            m30b,
+            m29)) %>% 
+  pivot_longer(
+    cols = -c(1:2),
+    names_to = "variable",
+    values_to = "valor"
+  ) %>% 
+  na.omit()
+
+db_categ_ola_muestra <- db_categ_ola_muestra %>%
+  group_by(ola, muestra, variable, valor) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(prop = n / sum(n))
+
+db_categ_ola_muestra <- db_categ_ola_muestra %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = c(n, prop),
+    values_fill = NA
+  )
+
+db_categ_ola_muestra
+
+# Guardar
+save(db_categ_ola_muestra, file = here ("data/bases-vis-elsoc/db_categ_ola_muestra.RData"))
+
 # ==============================================
-# BASE 4: Base longitudinal con estructura jerárquica promedios
+# BASE 4: Base longitudinal con estructura jerárquica
 # ==============================================
 
 # Crear base longitudinal con todos los indicadores
 variables_indicadores <- c(
-  "in_seg_peleas_calle", "in_seg_asaltos", "in_seg_trafico_drogas",
-  "in_seg_seguridad_sat", "in_seg_seguridad_perc", 
-  "in_bar_ideal", "in_bar_integracion", "in_bar_identidad", "in_bar_pertenencia",
-  "in_bar_amigos", "in_bar_sociable", "in_bar_cordial", "in_bar_colaborador",
-  "in_conf_inter_general", "in_conf_inter_altruismo",
-  "in_prosoc_reunion_pub", "in_prosoc_voluntariado",
-  "in_ayuda_prestar_dinero", "in_ayuda_trabajo", "in_ayuda_donar_dinero",
-  "in_conf_inst_gobierno", "in_conf_inst_pp", "in_conf_inst_congreso",
-  "in_part_firma_peticion", "in_part_asiste_marcha", "in_part_huelga",
-  "in_autoef_voto_deber", "in_autoef_voto_influye", "in_autoef_voto_expresion",
-  "in_intpol_interes_politica", "in_intpol_hablar_politica", "in_intpol_infopolitica_medios",
-  "in_autor_gobierno_firme", "in_autor_mandatario_fuerte", "in_autor_vida_disciplinar",
-  "in_just_pensiones", "in_just_educacion", "in_just_salud"
+  "seg_peleas_calle", "seg_asaltos", "seg_trafico_drogas",
+  "seg_seguridad_sat", "seg_seguridad_perc", 
+  "bar_ideal", "bar_integracion", "bar_identidad", "bar_pertenencia",
+  "bar_amigos", "bar_sociable", "bar_cordial", "bar_colaborador",
+  "conf_inter_general", "conf_inter_altruismo",
+  "prosoc_reunion_pub", "prosoc_voluntariado",
+  "ayuda_prestar_dinero", "ayuda_trabajo", "ayuda_donar_dinero",
+  "conf_inst_gobierno", "conf_inst_pp", "conf_inst_congreso",
+  "part_firma_peticion", "part_asiste_marcha", "part_huelga",
+  "autoef_voto_deber", "autoef_voto_influye", "autoef_voto_expresion",
+  "intpol_interes_politica", "intpol_hablar_politica", "intpol_infopolitica_medios",
+  "autor_gobierno_firme", "autor_mandatario_fuerte", "autor_vida_disciplinar",
+  "just_pensiones", "just_educacion", "just_salud"
 )
 
 # Crear base en formato largo
-df_long_jerarquica <- db_long %>%
-  select(idencuesta, ola, all_of(variables_indicadores)) %>%
+df_long_jerarquica <- db %>%
+  select(ola, all_of(variables_indicadores)) %>%
   pivot_longer(
-    cols = -c(idencuesta, ola),
+    cols = -ola,
     names_to = "indicador",
     values_to = "meanvalue"
   ) %>%
@@ -1349,56 +1203,56 @@ df_long_jerarquica <- db_long %>%
 # Crear subdimensiones
 df_long_jerarquica$subdimension <- 
 car::recode(df_long_jerarquica$indicador, "
-  'in_seg_peleas_calle'       = 'Seguridad objetiva';
-  'in_seg_asaltos'            = 'Seguridad objetiva';
-  'in_seg_trafico_drogas'     = 'Seguridad objetiva';
+  'seg_peleas_calle'       = 'Seguridad objetiva';
+  'seg_asaltos'            = 'Seguridad objetiva';
+  'seg_trafico_drogas'     = 'Seguridad objetiva';
   
-  'in_seg_seguridad_sat'      = 'Seguridad subjetiva';
-  'in_seg_seguridad_perc'     = 'Seguridad subjetiva';
+  'seg_seguridad_sat'      = 'Seguridad subjetiva';
+  'seg_seguridad_perc'     = 'Seguridad subjetiva';
   
-  'in_bar_ideal'              = 'Pertenencia al Barrio';
-  'in_bar_integracion'        = 'Pertenencia al Barrio';
-  'in_bar_identidad'          = 'Pertenencia al Barrio';
-  'in_bar_pertenencia'        = 'Pertenencia al Barrio';
+  'bar_ideal'              = 'Pertenencia al Barrio';
+  'bar_integracion'        = 'Pertenencia al Barrio';
+  'bar_identidad'          = 'Pertenencia al Barrio';
+  'bar_pertenencia'        = 'Pertenencia al Barrio';
   
-  'in_bar_amigos'             = 'Satisfacción con el barrio';
-  'in_bar_sociable'           = 'Satisfacción con el barrio';
-  'in_bar_cordial'            = 'Satisfacción con el barrio';
-  'in_bar_colaborador'        = 'Satisfacción con el barrio';
+  'bar_amigos'             = 'Satisfacción con el barrio';
+  'bar_sociable'           = 'Satisfacción con el barrio';
+  'bar_cordial'            = 'Satisfacción con el barrio';
+  'bar_colaborador'        = 'Satisfacción con el barrio';
   
-  'in_conf_inter_general'     = 'Confianza interpersonal';
-  'in_conf_inter_altruismo'   = 'Confianza interpersonal';
+  'conf_inter_general'     = 'Confianza interpersonal';
+  'conf_inter_altruismo'   = 'Confianza interpersonal';
   
-  'in_prosoc_reunion_pub'     = 'Comportamiento prosocial';
-  'in_prosoc_voluntariado'    = 'Comportamiento prosocial';
+  'prosoc_reunion_pub'     = 'Comportamiento prosocial';
+  'prosoc_voluntariado'    = 'Comportamiento prosocial';
   
-  'in_ayuda_prestar_dinero'   = 'Ayuda económica';
-  'in_ayuda_trabajo'          = 'Ayuda económica';
-  'in_ayuda_donar_dinero'     = 'Ayuda económica';
+  'ayuda_prestar_dinero'   = 'Ayuda económica';
+  'ayuda_trabajo'          = 'Ayuda económica';
+  'ayuda_donar_dinero'     = 'Ayuda económica';
   
-  'in_conf_inst_gobierno'     = 'Confianza en instituciones políticas';
-  'in_conf_inst_pp'           = 'Confianza en instituciones políticas';
-  'in_conf_inst_congreso'     = 'Confianza en instituciones políticas';
+  'conf_inst_gobierno'     = 'Confianza en instituciones políticas';
+  'conf_inst_pp'           = 'Confianza en instituciones políticas';
+  'conf_inst_congreso'     = 'Confianza en instituciones políticas';
   
-  'in_part_firma_peticion'    = 'Participación política';
-  'in_part_asiste_marcha'     = 'Participación política';
-  'in_part_huelga'            = 'Participación política';
+  'part_firma_peticion'    = 'Participación política';
+  'part_asiste_marcha'     = 'Participación política';
+  'part_huelga'            = 'Participación política';
   
-  'in_autoef_voto_deber'      = 'Autoeficacia política';
-  'in_autoef_voto_influye'    = 'Autoeficacia política';
-  'in_autoef_voto_expresion'  = 'Autoeficacia política';
-
-  'in_intpol_interes_politica'   = 'Interés en política';
-  'in_intpol_hablar_politica'    = 'Interés en política';
-  'in_intpol_infopolitica_medios'= 'Interés en política';
+  'autoef_voto_deber'      = 'Autoeficacia política';
+  'autoef_voto_influye'    = 'Autoeficacia política';
+  'autoef_voto_expresion'  = 'Autoeficacia política';
   
-  'in_autor_gobierno_firme'   = 'Preferencias autoritarias';
-  'in_autor_mandatario_fuerte'= 'Preferencias autoritarias';
-  'in_autor_vida_disciplinar' = 'Preferencias autoritarias';
+  'intpol_interes_politica'   = 'Interés en política';
+  'intpol_hablar_politica'    = 'Interés en política';
+  'intpol_infopolitica_medios'= 'Interés en política';
   
-  'in_just_pensiones'         = 'Justicia distributiva';
-  'in_just_educacion'         = 'Justicia distributiva';
-  'in_just_salud'             = 'Justicia distributiva'
+  'autor_gobierno_firme'   = 'Preferencias autoritarias';
+  'autor_mandatario_fuerte'= 'Preferencias autoritarias';
+  'autor_vida_disciplinar' = 'Preferencias autoritarias';
+  
+  'just_pensiones'         = 'Justicia distributiva';
+  'just_educacion'         = 'Justicia distributiva';
+  'just_salud'             = 'Justicia distributiva'
 ")
 
 # Verificar subdimensiones
@@ -1454,30 +1308,7 @@ glimpse(df_long_jerarquica)
 # Guardar base longitudinal
 save(df_long_jerarquica, file = here ("data/bases-vis-elsoc/df_long_jerarquica.RData"))
 
-# ==============================================
-# BASE 4: Base longitudinal con estructura jerárquica categoricas
-# ==============================================
+sjPlot::view_df(db_categ,
+                show.frq = T,show.values = T,show.na = T,show.prc = T, show.type = T)
 
-df_categ_jerarquica <- db_categ %>% 
-  select(ola, 21:42) %>% 
-  pivot_longer(
-    cols = -ola,
-    names_to = "variable",
-    values_to = "valor"
-  ) %>% 
-  na.omit()
 
-df_categ_jerarquica <- df_categ_jerarquica %>%
-  group_by(ola, variable, valor) %>%
-  summarise(n = n(), .groups = "drop_last") %>%
-  mutate(prop = n / sum(n))
-
-df_categ_jerarquica <- df_categ_jerarquica %>%
-  pivot_wider(
-    names_from = variable,
-    values_from = c(n, prop),
-    values_fill = NA,
-    names_glue = "{variable}_{.value}"
-  )
-
-save(df_categ_jerarquica, file = here ("data/bases-vis-elsoc/df_categ_jerarquica.RData"))
