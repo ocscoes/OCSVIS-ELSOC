@@ -1,5 +1,5 @@
 ---
-title: "Foro III: Cohesión Social en tiempos de Desafección Política"
+title: "Hacia una nueva medición de cohesión social para Chile"
 Author: Equipo OCS
 lang: es
 knitr:
@@ -295,11 +295,11 @@ La propuesta OCS-ELSOC representa un avance sustantivo en la medición de cohesi
 
 Esta arquitectura integra condiciones objetivas, percepciones subjetivas, prácticas sociales y orientaciones normativas, manteniendo coherencia con el marco minimalista de Chan et al. (2006) mientras aprovecha las posibilidades que ofrece ELSOC para una medición comprehensiva de la cohesión social en Chile.
 
-# Cohesión Social en timepos de desafección en Chile: Un análisis con una propuesta desde ELSOC
+# Cohesión Social en tiempos de desafección en Chile: Un análisis con una propuesta desde ELSOC
 
-Habiendo presentado la nueva propuesta de medición de cohesión social del OCS, procedemos hacia un análisis empírico de los datos de ELSOC para examinar cómo se comportan estas dimensiones en la realidad chilena. 
+Teniendo esta nueva propuesta de medición de cohesión social, se presentaun análisis empírico de los datos con ELSOC para examinar cómo se comportan estas dimensiones en la realidad chilena. 
 
-En esta segunda parte del análisis, se verá la aplicación práctica de los indicadores desarrollados, explorando tanto la estructura factorial de las dimensiones propuestas como sus patrones de variación a lo largo del tiempo y entre diferentes grupos sociales. Los análisis que siguen buscan validar empíricamente la propuesta teórica presentada, identificar tendencias en la cohesión social chilena, y proporcionar evidencia sobre las dinámicas específicas que caracterizan tanto la cohesión horizontal (vínculos entre personas y con el territorio) como la cohesión vertical (relaciones ciudadano-instituciones) en el contexto nacional. 
+En este apartado, se verá la aplicación práctica de los indicadores desarrollados, explorando tanto la estructura factorial de las dimensiones propuestas como sus patrones de variación a lo largo del tiempo y entre diferentes grupos sociales. Los análisis que siguen buscan validar empíricamente la propuesta teórica presentada, identificar tendencias en la cohesión social chilena, y proporcionar evidencia sobre las dinámicas específicas que caracterizan tanto la cohesión horizontal (vínculos entre personas y con el territorio) como la cohesión vertical (relaciones ciudadano-instituciones) en el contexto nacional. 
 
 A través de estos análisis, se pretende no solo confirmar la pertinencia de la propuesta de medición, sino también generar conocimiento sustantivo sobre el estado y evolución de la cohesión social en Chile durante el período cubierto por ELSOC.
 
@@ -335,7 +335,7 @@ rm(list = ls())
 
 load(file = here("data/bases-vis-elsoc/db_madre.RData"))
 
-names(db_madre)
+
 ```
 
 
@@ -439,6 +439,7 @@ ggplot(db_satdem_ideo, aes(x = ola, y = media, color = ideologia, group = ideolo
   theme_minimal(base_size = 14)
 
 ```
+
 
 ```{r}
 #| echo: false
