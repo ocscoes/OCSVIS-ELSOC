@@ -1459,7 +1459,6 @@ glimpse(df_long_jerarquica)
 # Guardar base longitudinal
 save(df_long_jerarquica, file = here ("data/bases-vis-elsoc/df_long_jerarquica.RData"))
 
-
 # ==============================================
 # BASE 4: Base longitudinal con estructura jerárquica categoricas
 # ==============================================
@@ -1586,8 +1585,6 @@ df_categ_jerarquica <- df_categ_jerarquica %>%
   select(ola, valor, subdimension, dimension, area, prop, n)
 
 save(df_categ_jerarquica, file = here ("data/bases-vis-elsoc/df_categ_jerarquica.RData"))
-
-
 
 # ==============================================
 # BASE 5: Base longitudinal con estructura jerárquica proporciones
