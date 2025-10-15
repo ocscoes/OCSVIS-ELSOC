@@ -200,7 +200,6 @@ Más información sobre las fuentes de datos, la selección de indicadores y la 
 ## {.sidebar width="20%"}
 
 ```{r}
-
 tagList(
   fluidRow(
     column(
@@ -278,141 +277,26 @@ plotlyOutput("subdims_plot", height = "800px")
 
 ## {.sidebar width="25%"}
 
-```{r}
+```{r barras-ui-selector}
+shiny::selectInput(
+  inputId = "area_ranking",
+  label = "Elige un Área:",
+  choices = sort(unique(df_long$area)),
+  selected = "Area horizontal"
+  )
 
-tags$style(HTML("
-  .styled-slider .irs-bar {
-    background: transparent !important;
-  }
-
-.styled-slider .irs-handle {
-    background: #497abd !important;
-    border: 1px solid #1c7bbf !important;
-    width: 20px;
-    height: 20px;
-    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
-    border: none;
-}
-"))
-
-shiny::selectInput(inputId ="subdim_ranking",label = "Selecciona una dimensión",
-    choices = sort(unique(df_categ_jerarquica_ranking$subdimension)),
-    selected = sort(unique(df_categ_jerarquica_ranking$subdimension))[1]
-                   )
+shiny::selectInput(inputId ="subdim_ranking",label = "Selecciona una subdimensión",
+    choices = sort(unique(df_long$subdimension)),
+    selected = "Ayuda económica"
+    )
 
 shiny::checkboxGroupInput(
   inputId = "ola_ranking",
   label = "Selecciona los años:",
-  choices = unique(df_categ_jerarquica_ranking$ola),
-  selected = unique(df_categ_jerarquica_ranking$ola)[1:length(unique(df_categ_jerarquica_ranking$ola))],
+  choices = unique(df_long$ola),
+  selected = unique(df_long$ola)[1:length(unique(df_long$ola))],
   inline = TRUE
-)
-
-```
-
-```{r}
-# CSS Personalizado para los botones
-tags$style(HTML("
-  #ranking-buttons .btn {
-    transition: all 0.2s ease-in-out;
-    border: 1px solid #dee2e6;
-    height: 100%;
-    width: 100%;
-    padding: 5px;
-    white-space: normal;
-    font-weight: 500;
-  }
-
-  #ranking-buttons .btn:hover {
-    background-color: #e9ecef;
-    border-color: #adb5bd;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
-
-  #ranking-buttons .btn.active {
-    background-color:  #497abd;
-    color: white;
-    border-color: #00441b;
-    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
-  }
-
-  #ranking-buttons .btn.active img {
-     filter: brightness(0) invert(1);
-  }
-"))
-
-# Contenedor de botones
-div(id = "ranking-buttons",
-    style = "display: flex; flex-wrap: wrap; gap: 6px;",
-  
-  lapply(1:8, function(i) {
-    btn_id <- paste0("btn_var", i)
-    btn_label <- c(
-      "Cohesión<br>General", 
-      "Cohesión<br>Horizontal", 
-      "Cohesión<br>Vertical",
-      "Confianza<br>Interpersonal", 
-      "Seguridad<br>Pública", 
-      "Confianza en<br>Instituciones",
-      "Actitud hacia<br>la Democracia", 
-      "Justicia<br>Redistributiva"
-    )[i]
-    
-
-    btn_icon <- c(
-      "cohesion-general.svg",
-      "cohesion-horizontal.svg",
-      "cohesion-vertical.svg",
-      "confianza-interpersonal.svg",       
-      "seguridad-publica.svg",             
-      "confianza-instituciones.svg",       
-      "actitud-democracia.svg",            
-      "justicia-distributiva.svg"          
-    )[i]
-    # --- FIN DE CAMBIOS ---
-    
-    btn_class <- "btn btn-light"
-    if (i == 1) {
-      btn_class <- "btn btn-light active"
-    }
-    
- div(style = "
-        width: 48%;
-        height: 125px;
-        display: flex;
-        align-items: center;
-        justify-content: center;",
-      actionButton(
-        inputId = btn_id,
-        label = HTML(glue::glue(
-          '<div style="text-align:center; font-size:12px; line-height:1.1;">
-             <img src="www/img/{btn_icon}" width="35"><br>{btn_label}
-           </div>'
-        )),
-        class = "btn btn-light",
-        style = "width: 100%; height: 100%; padding: 5px;"
-      )
-    )
-  })
-)
-
-# JavaScript para gestionar la clase 'active' en los botones
-tags$script(HTML("
-  document.addEventListener('DOMContentLoaded', function() {
-    const buttonContainer = document.getElementById('ranking-buttons');
-    if (!buttonContainer) return;
-
-    buttonContainer.addEventListener('click', function(event) {
-        const button = event.target.closest('.action-button');
-        if (!button) return;
-
-        const allButtons = buttonContainer.querySelectorAll('.action-button');
-        allButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-    });
-  });
-"))
+  )
 ```
 
 ```{r barras-ui-render}
@@ -425,29 +309,26 @@ uiOutput("descripcion_barras")
 plotlyOutput("bar_plot")
 ```
 
-
-
 # Análisis Bivariado
 
 ## {.sidebar width="20%"}
 
 ```{r}
 
-tags$style(HTML("
-
-  .styled-slider .irs-bar {
-    background: transparent !important;
-  }
-
-.styled-slider .irs-handle {
-    background: #497abd !important;
-    border: 1px solid #1c7bbf !important;
-    width: 20px;
-    height: 20px;
-    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
-    border: none;
-}
-"))
+# tags$style(HTML("
+#   .styled-slider .irs-bar {
+#     background: transparent !important;
+#   }
+# 
+# .styled-slider .irs-handle {
+#     background: #497abd !important;
+#     border: 1px solid #1c7bbf !important;
+#     width: 20px;
+#     height: 20px;
+#     clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+#     border: none;
+# }
+# "))
 sidebarPanel(
   selectInput(
     inputId = "subdim_select",
@@ -480,7 +361,6 @@ plotlyOutput("plot_bivariado", height = "800px")
 # base longitudinal
 # load("data/bases-vis-elsoc/df_long_jerarquica.RData")
 load("data/bases-vis-elsoc/df_categ_jerarquica.RData")
-
 df_comb <- df_categ_jerarquica %>% 
   filter(valor=="Alto") %>%
   mutate(
@@ -505,90 +385,185 @@ df_comb <- df_comb %>%
   arrange(Ola, Subdimension, Dimension, Areas, Valor)
 
 # Ranking ---------------------------------------------------------------------
-# Data is loades in the setup chunk
+# Cargar datos y preparar estructura base
 load("data/bases-vis-elsoc/df_categ_jerarquica_ranking.RData")
-df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor=="Alto")
-df_long$ola <- factor(df_long$ola,ordered = T) 
-df_long$prop <- df_long$prop*100
+df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor == "Alto")
+df_long$ola <- factor(df_long$ola, ordered = TRUE)
+df_long$prop <- df_long$prop * 100
+df_long$indicador <- df_long$indicador |> as.character()
 
-## Datos reactivos ----
+# Recodear nombres de indicadores
+df_long$indicador <- car::recode(var = df_long$indicador, recodes = "
+  'in_autoef_voto_deber'           = 'Deber votar';
+  'in_autoef_voto_expresion'       = 'Voto expresión';
+  'in_autoef_voto_influye'         = 'Voto influye';
+  'in_autor_gobierno_firme'        = 'Gob. firme';
+  'in_autor_mandatario_fuerte'     = 'Líder fuerte';
+  'in_autor_vida_disciplinar'      = 'Disciplina';
+  'in_ayuda_donar_dinero'          = 'Donar dinero';
+  'in_ayuda_prestar_dinero'        = 'Prestar dinero';
+  'in_ayuda_trabajo'               = 'Ayuda trabajo';
+  'in_bar_amigos'                  = 'Amigos barrio';
+  'in_bar_colaborador'             = 'Colaboración';
+  'in_bar_cordial'                 = 'Cordialidad';
+  'in_bar_ideal'                   = 'Barrio ideal';
+  'in_bar_identidad'               = 'Identidad';
+  'in_bar_integracion'             = 'Integración';
+  'in_bar_pertenencia'             = 'Pertenencia';
+  'in_bar_sociable'                = 'Sociabilidad';
+  'in_conf_inst_congreso'          = 'Conf. Congreso';
+  'in_conf_inst_gobierno'          = 'Conf. Gobierno';
+  'in_conf_inst_pp'                = 'Conf. partidos';
+  'in_conf_inter_altruismo'        = 'Altruismo';
+  'in_conf_inter_general'          = 'Conf. general';
+  'in_intpol_hablar_politica'      = 'Hablar política';
+  'in_intpol_infopolitica_medios'  = 'Info. política';
+  'in_intpol_interes_politica'     = 'Interés polít.';
+  'in_just_educacion'              = 'Justicia educ.';
+  'in_just_pensiones'              = 'Justicia pens.';
+  'in_just_salud'                  = 'Justicia salud';
+  'in_part_asiste_marcha'          = 'Marchas';
+  'in_part_firma_peticion'         = 'Peticiones';
+  'in_part_huelga'                 = 'Huelgas';
+  'in_prosoc_reunion_pub'          = 'Reuniones';
+  'in_prosoc_voluntariado'         = 'Voluntariado';
+  'in_seg_asaltos'                 = 'Asaltos';
+  'in_seg_peleas_calle'            = 'Peleas';
+  'in_seg_seguridad_perc'          = 'Seguridad perc.';
+  'in_seg_seguridad_sat'           = 'Sat. seguridad';
+  'in_seg_trafico_drogas'          = 'Tráfico drogas';")
+
+# Selector reactivo de subdimensiones
+observeEvent(input$area_ranking, {
+  ch <- df_long |> dplyr::filter(area == input$area_ranking) |>
+    dplyr::distinct(subdimension) |> dplyr::arrange(subdimension) |>
+    dplyr::pull(subdimension)
+  updateSelectInput(session, "subdim_ranking", choices = ch, selected = ch[1])
+}, ignoreInit = FALSE)
+
+# Datos reactivos para gráfico
 bar_data <- reactive({
-  req(input$subdim_ranking, input$ola_ranking)
-
-  out <- df_long %>%
-    dplyr::filter(
-      subdimension == input$subdim_ranking,
-      ola %in% input$ola_ranking
-    )
-
-  # If ola is a factor, drop unused levels or coerce:
-  out <- out %>%
-    dplyr::mutate(
-      # choose ONE of these:
-      # ola = forcats::fct_drop(ola)
-      ola = as.character(ola)         # or as.integer(as.character(ola))
-    )
-
+  req(input$subdim_ranking, input$ola_ranking, input$area_ranking)
+  out <- df_long %>% dplyr::filter(
+    area == input$area_ranking,
+    subdimension == input$subdim_ranking,
+    ola %in% input$ola_ranking
+  ) %>% dplyr::mutate(ola = as.character(ola))
   out
-}) %>% 
-  # Cachea por estos inputs (opcional, mejora performance en apps grandes)
-  shiny::bindCache(input$subdim_ranking, input$ola_ranking, input$ika)
+}) %>% shiny::bindCache(input$subdim_ranking, input$ola_ranking)
 
-## Gráfico de barras ----
+# Render del gráfico de barras
 output$bar_plot <- renderPlotly({
   df_long_for_barplot <- bar_data()
-
-  # Guardrails
   req(all(c("ola","indicador","prop") %in% names(df_long_for_barplot)))
-  validate(
-    need(nrow(df_long_for_barplot) > 0, "No hay datos para la dimensión seleccionada.")
-  )
-  validate(
-    need(!all(is.na(df_long_for_barplot$prop)), 
-         "No hay valores disponibles (todo es NA) para esta selección.")
-  )
+  validate(need(nrow(df_long_for_barplot) > 0,
+           "No hay datos para la dimensión seleccionada."))
+  validate(need(!all(is.na(df_long_for_barplot$prop)),
+           "No hay valores disponibles (todo es NA) para esta selección."))
+  fname <- paste0(input$ola_ranking, "_", input$subdim_ranking)
+  plot_ly(data = df_long_for_barplot, x = ~ola, y = ~prop, color = ~indicador,
+    type = "bar", hoverinfo = "text",
+    text = ~paste0("Año: ", ola, "<br>Indicador: ", indicador,
+                   "<br>Proporción: ", round(prop, 2), "%")) %>%
+    layout(barmode = "group",
+      title = list(
+    text = paste0("Comparación para categoría 'Alta' en indicadores de ",
+                     "subdimensión ", input$subdim_ranking),
+    # x = 0,              # ← 0 = left, 0.5 = center, 1 = right
+    xanchor = "center",   # anchor aligns the title text relative to x
+    # y = 0,              # (optional) vertical position
+    yanchor = "top",    # anchor vertically
+    font = list(size = 18, family = "Arial", color = "black")
+    ),
+    xaxis = list(title = "Ola"),
+    yaxis = list(title = "Proporción", range = c(0, 100), ticksuffix = "%"),
+      legend = list(title = list(text = "Indicador"),
+        orientation = "h",
+        xanchor = "right",yanchor = "bottom",
+        x = 1,y = -0.3
+        ),
+      margin = list(t = 120,r = 120),
+      images = list(
+        list(
+          source = "www/images/logo-ocs-25.png",  # o una ruta local
+          xref = "paper", yref = "paper",
+          x = 1.07, y = 1.2,  # posición (ajustable)
+          sizex = 0.25, sizey = 0.2,
+          xanchor = "right", yanchor = "top",
+          layer = "above"
+          )
+        ),
+    annotations = list(
+        list(
+          text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = XXXX (individuos)",
+          xref = "paper", yref = "paper",
+          x = 0, y = -0.25,
+          xanchor = "left", yanchor = "top",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40", family = "Arial")
+          )
+        )    
+      ) %>% 
+    config(
+    displaylogo = TRUE,
+    toImageButtonOptions = list(
+      format = "png",
+      filename = paste0(stringi::stri_replace_all_regex((tolower(input$subdim_ranking)), "[^A-Za-z]", "")), 
+      height = 700,
+      width  = 1200,
+      scale  = 2
+      ),
+    modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
+                               "resetScale2d", "toggleSpikelines")
+    ) 
+}) %>% shiny::bindEvent(input$subdim_ranking, input$ika, input$ola_ranking)
 
-  plot_ly(
-    data = df_long_for_barplot,
-    x = ~ola,
-    y = ~prop,
-    color = ~indicador,
-    type  = "bar",
-    hoverinfo = "text",
-    text = ~paste0(
-      "Año: ", ola,
-      "<br>Indicador: ", indicador,
-      "<br>Proporción: ", round(0, 100), "%"
-    )
-  ) %>%
-    layout(
-      barmode = "group",
-      title  = paste0("Proporción por año — ", input$subdim_ranking),
-      xaxis  = list(title = "Año"),
-      yaxis  = list(title = "Proporción", range = c(0, 100), ticksuffix = "%"),
-      legend = list(title = list(text = "Indicador")),
-      margin = list(b = 80)
-    )
-}) %>%
-  # Asegura que el render se dispare al cambiar estos inputs
-  shiny::bindEvent(input$subdim_ranking, input$ika, input$ola_ranking)
+# Definiciones de subdimensiones
+definiciones_ranking <- c(
+  "Participación política" = "Participación en actividades políticas como firmar
+  peticiones, asistir a marchas o participar en huelgas.",
+  "Autoeficacia política" = "Percepción sobre la capacidad personal de influir
+  en el proceso político mediante el voto.",
+  "Interés en política" = "Nivel de interés, conversación e información sobre
+  temas políticos.",
+  "Confianza en instituciones políticas" = "Grado de confianza hacia
+  instituciones de orden político como el Gobierno o el Congreso.",
+  "Seguridad objetiva" = "Medidas objetivas de criminalidad como peleas o
+  asaltos en el barrio.",
+  "Seguridad subjetiva" = "Percepción personal sobre seguridad y satisfacción
+  con las medidas existentes.",
+  "Pertenencia al Barrio" = "Identificación e integración con el barrio de
+  residencia.",
+  "Satisfacción con el barrio" = "Evaluación de aspectos sociales del barrio
+  (amistad, cordialidad, colaboración).",
+  "Confianza interpersonal" = "Nivel de confianza hacia otros y creencia en el
+  altruismo general.",
+  "Comportamiento prosocial" = "Participación en actividades comunitarias como
+  reuniones o voluntariado.",
+  "Ayuda económica" = "Disposición a prestar dinero o ayudar a conseguir trabajo.",
+"Justicia distributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
+"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave."
+)
 
-# output$descripcion_barras <- renderUI({
-#   definiciones <- list(
-#     "Cohesión General" = "Partimos de una definición mínima de cohesión social que incluye 'tanto a las interacciones verticales como horizontales entre los miembros de la sociedad, caracterizado por un conjunto de actitudes y normas que incluyen la confianza, el sentido de pertenencia y la voluntad de participar y ayudar, así como sus manifestaciones conductuales' (Chan et al., 2006, p. 290).",
-#     "Cohesión Horizontal" = "La dimensión horizontal está dirigida hacia la cohesión dentro de la sociedad civil. Incluye indicadores sobre seguridad pública y confianza interpersonal.",
-#     "Cohesión Vertical" = "La dimensión vertical está dirigida hacia la cohesión entre los ciudadanos (o sociedad civil) y el Estado. Incluye indicadores sobre confianza en instituciones, actitudes hacia la democracia y justicia redistributiva.",
-#     "Confianza Interpersonal" = "Es el nivel de confianza que las personas tienen en otras personas, es decir, las expectativas positivas que una persona tiene sobre las intenciones o comportamientos de otra.",
-#     "Seguridad Pública" = "Incluye indicadores tanto objetivos como subjetivos de seguridad urbana.",
-#     "Confianza en Instituciones" = "El grado de confianza en entidades como el gobierno, policía o sistema judicial.",
-#     "Actitud hacia la Democracia" = "La valoración y apoyo que se le da al sistema democrático.",
-#     "Justicia Redistributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad."
-#   )
-#   
-#   texto <- definiciones[[variable_seleccionada()]]
-#   
-#   HTML(glue::glue("<p><strong>{variable_seleccionada()}:</strong> {texto}</p>"))
-# })
+# Render de descripciones
+output$descripcion_barras <- renderUI({
+  sel_v <- input$subdim_ranking %||% character(0)
+  if (length(sel_v) == 0) return(NULL)
+  sel_all <- unique(c(sel_v))
+  cards <- lapply(sel_all, function(nm) {
+    desc <- definiciones_ranking[[nm]]
+    if (is.null(desc) || is.na(desc) || identical(desc, ""))
+      desc <- "No tengo una descripción asociada a esta subdimensión todavía."
+    tags$div(
+      style = paste("margin-top:8px; padding:10px; border-left:4px solid #1f77b4;",
+                    "background:#f7f7f7; border-radius:6px;"),
+      tags$strong(nm),
+      tags$p(style = "margin:6px 0 0 0;", desc)
+    )
+  })
+  tagList(cards)
+})
+
 
 # Longitudinal (Author: Tomás)-----------------------------------------------------
 
