@@ -1459,6 +1459,7 @@ glimpse(df_long_jerarquica)
 # Guardar base longitudinal
 save(df_long_jerarquica, file = here ("data/bases-vis-elsoc/df_long_jerarquica.RData"))
 
+
 # ==============================================
 # BASE 4: Base longitudinal con estructura jerárquica categoricas
 # ==============================================
@@ -1585,3 +1586,216 @@ df_categ_jerarquica <- df_categ_jerarquica %>%
   select(ola, valor, subdimension, dimension, area, prop, n)
 
 save(df_categ_jerarquica, file = here ("data/bases-vis-elsoc/df_categ_jerarquica.RData"))
+
+
+
+# ==============================================
+# BASE 5: Base longitudinal con estructura jerárquica proporciones
+# ==============================================
+# 1. Define el vector con todas las variables que vas a modificar
+todas_las_variables <- c(
+  "in_seg_peleas_calle",
+  "in_seg_asaltos",
+  "in_seg_trafico_drogas",
+  "in_seg_seguridad_sat",
+  "in_seg_seguridad_perc",
+  "in_bar_ideal",
+  "in_bar_integracion",
+  "in_bar_identidad",
+  "in_bar_pertenencia",
+  "in_bar_amigos",
+  "in_bar_sociable",
+  "in_bar_cordial",
+  "in_bar_colaborador",
+  "in_conf_inter_general",
+  "in_conf_inter_altruismo",
+  "in_prosoc_reunion_pub",
+  "in_prosoc_voluntariado",
+  "in_ayuda_prestar_dinero",
+  "in_ayuda_trabajo",
+  "in_ayuda_donar_dinero",
+  "in_conf_inst_gobierno",
+  "in_conf_inst_pp",
+  "in_conf_inst_congreso",
+  "in_part_firma_peticion",
+  "in_part_asiste_marcha",
+  "in_part_huelga",
+  "in_autoef_voto_deber",
+  "in_autoef_voto_influye",
+  "in_autoef_voto_expresion",
+  "in_intpol_interes_politica",
+  "in_intpol_hablar_politica",
+  "in_intpol_infopolitica_medios",
+  "in_autor_gobierno_firme",
+  "in_autor_mandatario_fuerte",
+  "in_autor_vida_disciplinar",
+  "in_just_pensiones",
+  "in_just_educacion",
+  "in_just_salud"
+)
+
+
+# 2. Recodifica todas las variables de una vez
+db_categ <- db_long %>%
+  mutate(across(all_of(todas_las_variables), ~case_when(
+    .x >= 3 ~ "Alto",
+    .x < 3  ~ "Bajo"
+  ))) %>% 
+  select(c(1:12, 76:83),all_of(todas_las_variables))
+
+db_categ <- db_categ %>% 
+  mutate_at(.vars = todas_las_variables, .funs = ~ as_factor(.))
+
+
+df_categ_jerarquica <- db_categ %>%  # Aquí faltan los indicadores base
+  select(ola, todas_las_variables) %>% 
+  pivot_longer(
+    cols = -ola,
+    names_to = "variable",
+    values_to = "valor"
+  ) %>% 
+  na.omit()
+
+df_categ_jerarquica <- df_categ_jerarquica %>%
+  group_by(ola, variable, valor) %>%
+  summarise(n = n(), .groups = "drop_last") %>%
+  mutate(prop = n / sum(n))
+
+df_categ_jerarquica <- df_categ_jerarquica %>%
+  pivot_wider(
+    names_from = variable,
+    values_from = c(n, prop),
+    values_fill = NA,
+    names_glue = "{variable}_{.value}"
+  )
+
+# Crear base longitudinal con todos los indicadores
+variables_indicadores <- df_categ_jerarquica %>% ungroup() %>% select(starts_with("in_")) %>% names()
+
+df_categ_jerarquica <- df_categ_jerarquica %>%
+  pivot_longer(
+    cols = matches("^(in|di|sd)_"),                   
+    names_to = c("prefijo", "indicador", ".value"),   
+    names_pattern = "^(in|di|sd)_(.+)_(n|prop)$"
+  )
+
+df_categ_jerarquica <- df_categ_jerarquica %>% 
+  mutate(indicador = paste0(prefijo, "_", indicador))
+
+df_categ_jerarquica <- df_categ_jerarquica %>% 
+  filter(prefijo!="ar") %>% 
+  select(-c(prefijo))
+
+# Crear subdimensiones
+df_categ_jerarquica$subdimension <-NA
+# Verificar subdimensiones
+sjmisc::frq(df_categ_jerarquica$subdimension)
+
+df_categ_jerarquica$subdimension <- 
+  car::recode(df_categ_jerarquica$indicador, "
+  'in_seg_peleas_calle'       = 'Seguridad objetiva';
+  'in_seg_asaltos'            = 'Seguridad objetiva';
+  'in_seg_trafico_drogas'     = 'Seguridad objetiva';
+  
+  'in_seg_seguridad_sat'      = 'Seguridad subjetiva';
+  'in_seg_seguridad_perc'     = 'Seguridad subjetiva';
+  
+  'in_bar_ideal'              = 'Pertenencia al Barrio';
+  'in_bar_integracion'        = 'Pertenencia al Barrio';
+  'in_bar_identidad'          = 'Pertenencia al Barrio';
+  'in_bar_pertenencia'        = 'Pertenencia al Barrio';
+  
+  'in_bar_amigos'             = 'Satisfacción con el barrio';
+  'in_bar_sociable'           = 'Satisfacción con el barrio';
+  'in_bar_cordial'            = 'Satisfacción con el barrio';
+  'in_bar_colaborador'        = 'Satisfacción con el barrio';
+  
+  'in_conf_inter_general'     = 'Confianza interpersonal';
+  'in_conf_inter_altruismo'   = 'Confianza interpersonal';
+  
+  'in_prosoc_reunion_pub'     = 'Comportamiento prosocial';
+  'in_prosoc_voluntariado'    = 'Comportamiento prosocial';
+  
+  'in_ayuda_prestar_dinero'   = 'Ayuda económica';
+  'in_ayuda_trabajo'          = 'Ayuda económica';
+  'in_ayuda_donar_dinero'     = 'Ayuda económica';
+  
+  'in_conf_inst_gobierno'     = 'Confianza en instituciones políticas';
+  'in_conf_inst_pp'           = 'Confianza en instituciones políticas';
+  'in_conf_inst_congreso'     = 'Confianza en instituciones políticas';
+  
+  'in_part_firma_peticion'    = 'Participación política';
+  'in_part_asiste_marcha'     = 'Participación política';
+  'in_part_huelga'            = 'Participación política';
+  
+  'in_autoef_voto_deber'      = 'Autoeficacia política';
+  'in_autoef_voto_influye'    = 'Autoeficacia política';
+  'in_autoef_voto_expresion'  = 'Autoeficacia política';
+
+  'in_intpol_interes_politica'   = 'Interés en política';
+  'in_intpol_hablar_politica'    = 'Interés en política';
+  'in_intpol_infopolitica_medios'= 'Interés en política';
+  
+  'in_autor_gobierno_firme'   = 'Preferencias autoritarias';
+  'in_autor_mandatario_fuerte'= 'Preferencias autoritarias';
+  'in_autor_vida_disciplinar' = 'Preferencias autoritarias';
+  
+  'in_just_pensiones'         = 'Justicia distributiva';
+  'in_just_educacion'         = 'Justicia distributiva';
+  'in_just_salud'             = 'Justicia distributiva'
+")
+
+# Verificar subdimensiones
+sjmisc::frq(df_long_jerarquica$subdimension)
+
+# Crear dimensiones
+df_categ_jerarquica$dimension <- 
+  car::recode(df_categ_jerarquica$subdimension, "
+            'Seguridad objetiva'  = 'Seguridad pública';
+            'Seguridad subjetiva' = 'Seguridad pública';
+            
+            'Satisfacción con el barrio' = 'Vínculos territoriales';
+            'Pertenencia al Barrio' = 'Vínculos territoriales';
+            
+            'Ayuda económica' = 'Redes sociales';
+            'Comportamiento prosocial' = 'Redes sociales';
+            'Confianza interpersonal' = 'Redes sociales';
+            
+            'Confianza en instituciones políticas' = 'Confianza en instituciones';            
+
+            'Autoeficacia política' = 'Participación y actitudes políticas';
+            'Interés en política' = 'Participación y actitudes políticas';
+            'Participación política' = 'Participación y actitudes políticas';   
+            
+            'Preferencias autoritarias' = 'Preferencia por autoritarismo';
+            
+            'Justicia distributiva' = 'Justicia distributiva';
+            ")
+
+# Verificar dimensiones
+sjmisc::frq(df_categ_jerarquica$dimension)
+
+# Crear áreas
+df_categ_jerarquica$area <- 
+  car::recode(df_categ_jerarquica$dimension, "
+            'Seguridad pública'  = 'Area horizontal';
+            'Vínculos territoriales' = 'Area horizontal';
+            'Redes sociales' = 'Area horizontal';
+            
+            'Confianza en instituciones' = 'Area vertical';            
+            'Participación y actitudes políticas' = 'Area vertical';
+            'Preferencia por autoritarismo' = 'Area vertical';
+            'Justicia distributiva' = 'Area vertical'
+            ")
+
+
+df_categ_jerarquica <- df_categ_jerarquica %>% 
+  mutate(dimension = if_else(dimension == subdimension, NA, dimension))
+
+df_categ_jerarquica <- df_categ_jerarquica %>% 
+  select(ola, valor, subdimension, dimension, area, prop, n)
+df_categ_jerarquica_ranking <- df_categ_jerarquica
+save(df_categ_jerarquica_ranking, file = here ("data/bases-vis-elsoc/df_categ_jerarquica_ranking.RData"))
+
+
+
