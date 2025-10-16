@@ -2,18 +2,21 @@
 title: "Cohesión Social en Chile"
 format:
   dashboard:
-   nav-buttons:
-     - icon: github
-       href: https://github.com/ocscoes/OCSVIS-ELSOC
-       target: _blank
-     - icon: globe
-       href: https://ocs-coes.netlify.app
-       target: _blank
-logo: "www/images/ocs-negro.png"
+    logo: "www/images/ocs-negro.png"
+    nav-buttons:
+      - text: "Documento Metodológico  |"
+        href: https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html
+        target: _blank    
+      - icon: github
+        href: https://github.com/ocscoes/OCSVIS-ELSOC
+        target: _blank
+      - icon: globe
+        href: https://ocs-coes.netlify.app
+        target: _blank
 server: shiny
 resources: 
- - www
- - css
+  - www
+  - css
 ---
 
 ```{r}
@@ -74,11 +77,11 @@ standardize_long <- function(df, level_col, category_name) {
 }
 
 # se aplica la función a las bases que contiene las variables demográficas de interés
-genero <- standardize_long(sexo_categ, sexo, "sexo")
-educacion <- standardize_long(cine_categ, cine, "educacion")
-ingresos <- standardize_long(ingreso_categ, grupo_ingreso, "ingreso")
-edad <- standardize_long(edad_categ, edad_t, "edad")
-id_pol <- standardize_long(ideologia_categ, ideologia, "ideologia politica")
+genero <- standardize_long(sexo_categ, sexo, "Sexo")
+educacion <- standardize_long(cine_categ, cine, "Educación")
+ingresos <- standardize_long(ingreso_categ, grupo_ingreso, "Ingresos")
+edad <- standardize_long(edad_categ, edad_t, "Edad")
+id_pol <- standardize_long(ideologia_categ, ideologia, "Ideología política")
 
 # se unen las bases de datos para generar la bbdd que contiene todos los cruces
 df_long_bivariate <- bind_rows(genero, educacion, ingresos, edad, id_pol)
@@ -104,8 +107,8 @@ df_long_bivariate <- df_long_bivariate %>%
 
 df_long_bivariate <- df_long_bivariate %>%
   select(ola, subdimension, dimension, area, prop, category, levels) %>%
-  rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension, Valor=prop) %>%
-  arrange(Ola, category, levels, Subdimension, Dimension, Areas, Valor)
+  rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension, Valor=prop, Categoria = category) %>%
+  arrange(Ola, Categoria, levels, Subdimension, Dimension, Areas, Valor)
 ```
 
 ```{=HTML}
@@ -131,6 +134,7 @@ df_long_bivariate <- df_long_bivariate %>%
 
 # Inicio
 
+
 **Elige una de las pestañas disponibles para realizar el análisis**:
 
 
@@ -140,54 +144,24 @@ df_long_bivariate <- df_long_bivariate %>%
 
   -   **_Bivariado_**: Aquí se encuentran dos selectores entre los que encontrarás las dimensiones y subdimensiones, además de algunas variables de caracterización sociodemográficas.  
 
-Todas los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
+Todos los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
   
-Más información sobre las fuentes de datos, la selección de indicadores y la construcción de los índices <a href="https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html" target="_blank">aquí</a>.
+Más información sobre la selección de variables, validación de los datos y construcción de los índices la puedes encontrar en el **Documento Metodológico** (esquina superior derecha). 
 
-```{=HTML}
 
-<h3 class="logo-title">Instituciones patrocinantes</h3>
+Los **indicadores de cohesión social** disponibles en el visualizador son los que se presentan en **los siguientes esquemas**: 
 
-<div class="logo-links">
-  <a href="https://anid.cl" target="_blank">
-    <img src="www/img/anid.png" alt="ANID">
-  </a>
-  <a href="https://uchile.cl" target="_blank">
-    <img src="www/img/uch.png" alt="UChile">
-  </a>
-  <a href="https://www.uc.cl" target="_blank">
-    <img src="www/img/puc.png" alt="PUC">
-  </a>
-  <a href="https://www.udp.cl" target="_blank">
-    <img src="www/img/udp.png" alt="UDP">
-  </a>
-  <a href="https://www.uai.cl" target="_blank">
-    <img src="www/img/uai.png" alt="UAI">
-  </a>
-</div>
+::::{.columns}
+:::{.column width="100%"}
+![](www/img/elsoc-hor.png)
+:::
 
-<style>
-.logo-title {
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 1.5rem; /* controla espacio entre título y logos */
-}
+:::{.column width="100%"}
+![](www/img/elsoc-ver.png)
+:::
+::::
 
-.logo-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem; /* espacio entre logos */
-  flex-wrap: wrap;
-  margin-bottom: 2rem;
-}
 
-.logo-links img {
-  height: 60px;
-  transition: transform 0.2s ease;
-}
-</style>
-```
 
 # Análisis Longitudinal
 
@@ -206,14 +180,14 @@ tagList(
         choices = NULL,
         multiple = TRUE,
         options = list(
-          placeholder = "Elige hasta 4 elementos...",
+          placeholder = "Elige subdimensiones",
           maxItems = 4,
           plugins = list("remove_button"),
-          onInitialize = I("
+          onInitialize = I('
             function() {
               var self = this;
-              this.$control.on('mousedown', '.item', function(e){
-                var value = $(this).attr('data-value');
+              this.$control.on("mousedown", ".item", function(e){
+                var value = $(this).attr("data-value");
                 if (!value) return;
                 self.removeItem(value, false);
                 e.preventDefault();
@@ -221,7 +195,7 @@ tagList(
                 return false;
               });
             }
-          ")
+          ')
         )
       )
     ),
@@ -233,14 +207,14 @@ tagList(
         choices = NULL,
         multiple = TRUE,
         options = list(
-          placeholder = "Elige hasta 4 elementos...",
+          placeholder = "Elige subdimensiones",
           maxItems = 4,
           plugins = list("remove_button"),
-          onInitialize = I("
+          onInitialize = I('
             function() {
               var self = this;
-              this.$control.on('mousedown', '.item', function(e){
-                var value = $(this).attr('data-value');
+              this.$control.on("mousedown", ".item", function(e){
+                var value = $(this).attr("data-value");
                 if (!value) return;
                 self.removeItem(value, false);
                 e.preventDefault();
@@ -248,7 +222,7 @@ tagList(
                 return false;
               });
             }
-          ")
+          ')
         )
       )
     )
@@ -419,32 +393,39 @@ plotlyOutput("bar_plot")
 ```{r}
 
 tags$style(HTML("
-
-  .styled-slider .irs-bar {
-    background: transparent !important;
-  }
-
-.styled-slider .irs-handle {
+  .styled-slider .irs-bar { background: transparent !important; }
+  .styled-slider .irs-handle {
     background: #497abd !important;
     border: 1px solid #1c7bbf !important;
-    width: 20px;
-    height: 20px;
+    width: 20px; height: 20px;
     clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
     border: none;
-}
+  }
 "))
+
 sidebarPanel(
+  # NUEVO selector de área 
+  selectInput(
+    inputId = "area_select",
+    label   = "Elige un Área:",
+    choices = sort(unique(df_long_bivariate$Areas)),
+    selected = sort(unique(df_long_bivariate$Areas))[1]
+  ),
+
+  # (sin cambios) subdimensión: se actualizará dinámicamente según "area_select"
   selectInput(
     inputId = "subdim_select",
-    label = "Elige una subdimensión:",
+    label   = "Elige una subdimensión:",
     choices = sort(unique(df_long_bivariate$Subdimension)),
     selected = sort(unique(df_long_bivariate$Subdimension))[1]
   ),
+
+  # (sin cambios) categoría
   selectInput(
-    inputId = "category_select",
-    label = "Elige una categoría:",
-    choices = sort(unique(df_long_bivariate$category)),
-    selected = sort(unique(df_long_bivariate$category))[1]
+    inputId = "Categoria_select",
+    label   = "Elige una categoría:",
+    choices = sort(unique(df_long_bivariate$Categoria)),
+    selected = sort(unique(df_long_bivariate$Categoria))[1]
   )
 )
 ```
@@ -629,7 +610,12 @@ definiciones <- c(
   "Satisfacción con el barrio" = "Evaluación de las características sociales del barrio (amigable, sociable, cordial, colaborador).",
   "Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista.",
   "Comportamiento prosocial" = "Participación en actividades comunitarias como reuniones públicas y la participación en voluntariado.",
-  "Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido."
+  "Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido.",
+  "Sexo" = "Se distingue entre hombre y mujer.",
+  "Edad" = "Está medida por tramos etarios",
+  "Ingresos" = "Se mide por tres grupos que tienen una representación aproximada a los ingresos de clase baja, clase media y clase alta.",
+  "Educación" = "Considera cinco niveles educativos",
+  "Ideología política" = "Se comprende en el espectro político desde izquierda hasta derecha"
 )
 
 # --- Estado previo y última selección (compartido entre ambos selectores) ---
@@ -776,7 +762,7 @@ output$subdims_plot <- plotly::renderPlotly({
       ),
       annotations = list(
         list(
-          text = "(1): Datos provenientes de la Encuesta Longitudinal Social de Chile (N = )",
+          text = "FUente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = XXX (individuos)",
           xref = "paper", yref = "paper",
           x = 0, y = -0.18,
           xanchor = "left", yanchor = "top",
@@ -785,7 +771,7 @@ output$subdims_plot <- plotly::renderPlotly({
           font = list(size = 12, color = "gray40")
         ),
         list(
-          text = "(2): Los puntos ausentes en el gráfico significan que la variable no tiene datos disponibles para ese año.",
+          text = "(2): Los puntos ausentes en las olas significan que no hay datos disponibles para ese año.",
           xref = "paper", yref = "paper",
           x = 0, y = -0.24,
           xanchor = "left", yanchor = "top",
@@ -822,16 +808,16 @@ standardize_long <- function(df, level_col, category_name) {
 }
 
 # se aplica la función a las bases que contiene las variables demográficas de interés
-genero <- standardize_long(sexo_categ, sexo, "sexo")
-educacion <- standardize_long(cine_categ, cine, "educacion")
-ingresos <- standardize_long(ingreso_categ, grupo_ingreso, "ingreso")
-edad <- standardize_long(edad_categ, edad_t, "edad")
-id_pol <- standardize_long(ideologia_categ, ideologia, "ideologia politica")
+genero <- standardize_long(sexo_categ, sexo, "Sexo")
+educacion <- standardize_long(cine_categ, cine, "Educación")
+ingresos <- standardize_long(ingreso_categ, grupo_ingreso, "Ingresos")
+edad <- standardize_long(edad_categ, edad_t, "Edad")
+id_pol <- standardize_long(ideologia_categ, ideologia, "Ideología política")
 
 # se unen las bases de datos para generar la bbdd que contiene todos los cruces
 df_long_bivariate <- bind_rows(genero, educacion, ingresos, edad, id_pol)
 
-# procesamiento idéntico a la basee longitudinal
+# procesamiento idéntico a la base longitudinal
 
 df_long_bivariate <- df_long_bivariate %>%
   mutate(
@@ -845,33 +831,89 @@ df_long_bivariate <- df_long_bivariate %>%
 df_long_bivariate <- df_long_bivariate %>%
   filter(!is.na(dimension))
 
-# pasar valores a %
-# df_long_bivariate <- df_long_bivariate %>% dplyr::mutate(Valor = prop * 100)
-
 # seleccionar, renombrar y ordenar columnas
 
 df_long_bivariate <- df_long_bivariate %>%
   select(ola, subdimension, dimension, area, prop, category, levels) %>%
-  rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension, Valor=prop) %>%
-  arrange(Ola, category, levels, Subdimension, Dimension, Areas, Valor)
+  rename(Ola=ola,Areas=area,Subdimension=subdimension,Dimension=dimension, Valor=prop, Categoria = category) %>%
+  arrange(Ola, Categoria, levels, Subdimension, Dimension, Areas, Valor)
 
-# ---- PLOT ----
+  # pasar valores a %
+ df_long_bivariate <- df_long_bivariate %>% dplyr::mutate(Valor = Valor * 100)
 
-  dat_filtered <- reactive({
-    req(input$subdim_select, input$category_select)
+# ---- Selector ----
 
-    ungroup(df_long_bivariate) %>%
-      dplyr::filter(
-        Subdimension == input$subdim_select,
-        category == input$category_select
-      ) %>%
-      dplyr::select(Ola, levels, Valor, Subdimension, category) %>%  # keep Valor
-      dplyr::mutate(
-        Ola = as.factor(Ola),
-        levels = as.factor(levels)
-      ) %>%
-      dplyr::arrange(Ola, levels)
-  })
+# Subdimensiones disponibles según área seleccionada
+subdims_by_area <- reactive({
+  req(input$area_select)
+  df_long_bivariate %>%
+    dplyr::filter(Areas == input$area_select) %>%
+    dplyr::distinct(Subdimension) %>%
+    dplyr::pull(Subdimension) %>%
+    sort()
+})
+
+# Actualiza dinámicamente el select de subdimensiones al cambiar el área
+observeEvent(input$area_select, {
+  # intentamos mantener la selección si sigue siendo válida
+  sel_actual <- isolate(input$subdim_select)
+  opciones   <- subdims_by_area()
+  sel_nueva  <- if (!is.null(sel_actual) && sel_actual %in% opciones) sel_actual else dplyr::first(opciones)
+
+  updateSelectInput(
+    inputId = "subdim_select",
+    choices = opciones,
+    selected = sel_nueva
+  )
+}, ignoreInit = FALSE)
+
+# ---- tarjetas de definiciones ----
+
+output$descripcion_longitudinal <- renderUI({
+  subd <- input$subdim_select
+  catg <- input$Categoria_select
+
+  # Si no hay nada seleccionado, no mostramos nada
+  if (is.null(subd) && is.null(catg)) return(NULL)
+
+  make_card <- function(titulo, clave_busqueda) {
+    desc <- definiciones[[clave_busqueda]]
+    if (is.null(desc) || is.na(desc) || identical(desc, "")) {
+      desc <- "No tengo una descripción asociada todavía."
+    }
+    tags$div(
+      style = "margin-top:8px; padding:10px; border-left:4px solid #1f77b4; background:#f7f7f7; border-radius:6px;",
+      tags$strong(titulo),
+      tags$p(style = "margin:6px 0 0 0;", desc)
+    )
+  }
+
+  # Construimos tarjetas (una por subdimensión y otra por categoría, si existen)
+  tagList(
+    if (!is.null(subd)) make_card(subd, subd),
+    if (!is.null(catg)) make_card(paste0("Categoría: ", catg), catg)
+  )
+})
+
+# ---- RENDER PLOT ----
+
+dat_filtered <- reactive({
+  req(input$area_select, input$subdim_select, input$Categoria_select)
+
+  df_long_bivariate %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(
+      Areas       == input$area_select,
+      Subdimension == input$subdim_select,
+      Categoria    == input$Categoria_select
+    ) %>%
+    dplyr::select(Ola, levels, Valor, Subdimension, Categoria, Areas) %>%
+    dplyr::mutate(
+      Ola    = as.factor(Ola),
+      levels = as.factor(levels)
+    ) %>%
+    dplyr::arrange(Ola, levels)
+})
 
   output$plot_bivariado <- plotly::renderPlotly({
     req(dat_filtered())
@@ -887,10 +929,10 @@ df_long_bivariate <- df_long_bivariate %>%
     marker = list(size = 6)
   ) %>%
     plotly::layout(
-      title = paste0("Subdimension: ", input$subdim_select,
-                     " | Category: ", input$category_select),
+      title = paste0("Subdimensión: ", input$subdim_select,
+                     " | Categoría: ", input$Categoria_select),
       xaxis = list(title = "Ola"),
-      yaxis = list(title = "Valor")
+      yaxis = list(title = "Porcentaje", ticksuffix = "%")
     )
   })
 
