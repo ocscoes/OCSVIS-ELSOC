@@ -173,7 +173,7 @@ db <- db %>%
                 ~1 + (. - 1) * 2))
 
 # Verificar el resultado
-summary(db[, variables_a_transformar])  
+frq(db[, variables_a_transformar])  
 
 db$sd_comportamiento_prosocial <- rowMeans(db[, c("in_prosoc_reunion_pub", "in_prosoc_voluntariado")], na.rm = TRUE)
 
@@ -233,7 +233,7 @@ db <- db %>%
                 ~1 + (. - 1) * 2))
 
 # Verificar el resultado
-summary(db[, variables_a_transformar]) 
+frq(db[, variables_a_transformar]) 
 
 db$sd_ayuda_economica <- rowMeans(db[, c("in_ayuda_prestar_dinero", "in_ayuda_trabajo", "in_ayuda_donar_dinero")], na.rm = TRUE)
 
@@ -272,9 +272,9 @@ variables_a_transformar <- c("in_conf_inter_general", "in_conf_inter_altruismo")
 db <- db %>%
   mutate(across(all_of(variables_a_transformar), 
                 ~case_when(
-                  . == 1 ~ 1,
-                  . == 2 ~ 3,
-                  . == 3 ~ 2,
+                  . == 1 ~ 3, # La mayoria de las veces tratan de ayudar a los demas
+                  . == 2 ~ 1, # La mayoria de las veces se preocupan solo de si mismas
+                  . == 3 ~ 2,  # Depende
                   TRUE ~ NA_real_
                 )))
 
@@ -284,12 +284,11 @@ db <- db %>%
                 ~1 + (. - 1) * 2))
 
 # Verificar el resultado
-summary(db[, variables_a_transformar]) 
+frq(db[, variables_a_transformar]) 
 
 db$sd_confianza_inter <- rowMeans(db[, c("in_conf_inter_general", "in_conf_inter_altruismo")], na.rm = TRUE)
 
 frq(db$sd_confianza_inter)
-
 
 # Redes Sociales
 db %>% 
