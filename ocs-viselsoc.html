@@ -1300,7 +1300,8 @@ dat_filtered <- reactive({
     type = "scatter",
     mode = "lines+markers",
     line = list(width = 2),
-    marker = list(size = 6)
+    marker = list(size = 6),
+    connectgaps = TRUE
   ) %>%
     plotly::layout(
       title = paste0("Subdimensión: ", input$subdim_select,
