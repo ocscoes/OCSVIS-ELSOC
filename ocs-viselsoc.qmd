@@ -131,7 +131,8 @@ df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor=="Alto")
 }
 
 .logo-bloque {
-  margin-bottom: 40px;
+  margin-top: 10px;
+  margin-bottom: 25px;
 }
 </style>
 ```
