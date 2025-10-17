@@ -8,6 +8,13 @@ rsconnect::setAccountInfo(name='ocs-coes',
                           secret='gGXd5aw/yza5GHnyukmmeoMjicFUfeqWLgyP056c')
 
 
-quarto_publish_app(input = "viselsoc.qmd",
+# 1) Ignorar la carpeta 'proc/' en el despliegue
+writeLines("^proc/\n", ".rscignore")
+writeLines("proc/\n", ".quartoignore")
+
+quarto_publish_app(input = "ocs-viselsoc.qmd",
                    server="shinyapps.io",
-                   name = "ocsvis-elsoc",account = "ocs-coes")
+                   name = "ocs-viselsoc",
+                   account = "ocs-coes")
+
+

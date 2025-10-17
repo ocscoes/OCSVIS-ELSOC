@@ -1,0 +1,13 @@
+name: ocs-viselsoc
+title:
+username: ocs-coes
+account: ocs-coes
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15789613
+bundleId: 11048889
+url: https://ocs-coes.shinyapps.io/ocs-viselsoc/
+version: 1
+quarto_version: 1.5.57
+quarto_engines: knitr
+serverRender: FALSE

@@ -2,7 +2,7 @@ library(pacman)
 p_load(tidyverse,
        janitor,
        plotly,
-       ggimage,
+       # ggimage,
        RColorBrewer)
 
 load(file = "data/base_shiny_completa.rdata")
