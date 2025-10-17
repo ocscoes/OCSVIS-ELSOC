@@ -1589,6 +1589,9 @@ save(df_categ_jerarquica, file = here ("data/bases-vis-elsoc/df_categ_jerarquica
 # BASE 5: Base longitudinal con estructura jerárquica proporciones
 # ==============================================
 # 1. Define el vector con todas las variables que vas a modificar
+
+load(file = here::here("data/bases-vis-elsoc/db_madre.RData"))
+
 todas_las_variables <- c(
   "in_seg_peleas_calle",
   "in_seg_asaltos",
@@ -1632,7 +1635,7 @@ todas_las_variables <- c(
 
 
 # 2. Recodifica todas las variables de una vez
-db_categ <- db_long %>%
+db_categ <- db_madre %>%
   mutate(across(all_of(todas_las_variables), ~case_when(
     .x >= 3 ~ "Alto",
     .x < 3  ~ "Bajo"
@@ -1742,7 +1745,7 @@ df_categ_jerarquica$subdimension <-
 ")
 
 # Verificar subdimensiones
-sjmisc::frq(df_long_jerarquica$subdimension)
+sjmisc::frq(df_categ_jerarquica$subdimension)
 
 # Crear dimensiones
 df_categ_jerarquica$dimension <- 
@@ -1789,7 +1792,7 @@ df_categ_jerarquica <- df_categ_jerarquica %>%
   mutate(dimension = if_else(dimension == subdimension, NA, dimension))
 
 df_categ_jerarquica <- df_categ_jerarquica %>% 
-  select(ola, valor, subdimension, dimension, area, prop, n)
+  select(ola, valor,indicador,subdimension, dimension, area, prop, n)
 df_categ_jerarquica_ranking <- df_categ_jerarquica
 save(df_categ_jerarquica_ranking, file = here ("data/bases-vis-elsoc/df_categ_jerarquica_ranking.RData"))
 

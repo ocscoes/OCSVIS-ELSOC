@@ -495,8 +495,8 @@ my_colors <- c(
 
 df_long$color <- car::recode(df_long$indicador, "
   'Deber votar'     = '#74A9CF';
-  'Voto expresión'  = '#2B8CBE';
-  'Voto influye'    = '#08519C';
+  'Voto expresión'  = '#08519C';
+  'Voto influye'    = '#2B8CBE';
 
   'Gob. firme'      = '#3F007D';
   'Líder fuerte'    = '#6A51A3';
@@ -516,8 +516,8 @@ df_long$color <- car::recode(df_long$indicador, "
   'Sociabilidad'    = '#FEE6CE';
 
   'Conf. Congreso'  = '#99000D';
-  'Conf. Gobierno'  = '#CB181D';
-  'Conf. partidos'  = '#EF3B2C';
+  'Conf. Gobierno'  = '#ED0000';
+  'Conf. partidos'  = '#FFA587';
   'Conf. general'   = '#FB6A4A';
 
   'Altruismo'       = '#8C564B';
@@ -533,15 +533,18 @@ df_long$color <- car::recode(df_long$indicador, "
   'Marchas'         = '#4D4D4D';
   'Peticiones'      = '#737373';
   'Huelgas'         = '#969696';
-  'Reuniones'       = '#BDBDBD';
-  'Voluntariado'    = '#D9D9D9';
+  'Reuniones'       = '#0059FF';
+  'Voluntariado'    = '#A8C5FF';
 
   'Asaltos'         = '#7A0177';
   'Peleas'          = '#AE017E';
-  'Seguridad perc.' = '#DD3497';
-  'Sat. seguridad'  = '#F768A1';
+  'Seguridad perc.' = '#6600FF';
+  'Sat. seguridad'  = '#F745A1';
   'Tráfico drogas'  = '#FA9FB5'
 ")
+
+
+
 
 df_long$indicador <- factor(df_long$indicador)
 
@@ -570,6 +573,8 @@ bar_data <- reactive({
 # Render del gráfico de barras
 output$bar_plot <- renderPlotly({
   df_long_for_barplot <- bar_data()
+  paleta_fija <- unique(bar_data()$color)
+    
   req(all(c("ola","indicador","prop") %in% names(df_long_for_barplot)))
   validate(need(nrow(df_long_for_barplot) > 0,
            "No hay datos para la dimensión seleccionada."))
@@ -577,9 +582,9 @@ output$bar_plot <- renderPlotly({
            "No hay valores disponibles (todo es NA) para esta selección."))
   fname <- paste0(input$ola_ranking, "_", input$subdim_ranking)
   
-  plot_ly(data = df_long_for_barplot, x = ~ola, y = ~prop, color = ~indicador,colors = ~color,
+  plot_ly(data = df_long_for_barplot, x = ~ola, y = ~prop, color = ~indicador,colors = paleta_fija,
     type = "bar", hoverinfo = "text",
-    text = ~paste0("Año: ", ola, "<br>Indicador: ", indicador,
+    text = ~paste0("Año: ", ola, "<br>Indicadores: ", indicador,
                    "<br>Proporción: ", round(prop, 2), "%")) %>%
     layout(barmode = "group",
       title = list(
