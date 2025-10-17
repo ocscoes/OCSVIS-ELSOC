@@ -4,9 +4,12 @@ format:
   dashboard:
     logo: "www/images/ocs-negro.png"
     nav-buttons:
+      - text: "VISLATAM  |"
+        href: https://ocs-coes.com/analisis/visualizador-latam/
+        target: _blank     
       - text: "Documento Metodológico  |"
         href: https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html
-        target: _blank    
+        target: _blank   
       - icon: github
         href: https://github.com/ocscoes/OCSVIS-ELSOC
         target: _blank
@@ -22,10 +25,6 @@ resources:
 ```{r}
 #| context: setup
 #| include: false
-
-## URLs
-# logo_file <- "https://github.com/ocscoes/OCS-COES/raw/master/app/www/images/ocs-21.png"
-# url_ocs   <- "https://ocs-coes.netlify.app/"
 
 ## Cargar librerías
 library(tidyverse)
@@ -118,15 +117,10 @@ df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor=="Alto")
 ```
 
 ```{=HTML}
-
-
 <div class="logo-bloque">
-
-<a href="https://ocs-coes.com/" target="_blank">
-  <img src="www/img/OCS-COES-02.png" class="centered-img" width="15%">
-</a>
-
-
+  <a href="https://ocs-coes.com/" target="_blank">
+    <img src="www/img/viselsoc-logo.png" class="centered-img" width="20%">
+  </a>
 </div>
 
 <style>
@@ -135,39 +129,44 @@ df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor=="Alto")
   margin-left: auto;
   margin-right: auto;
 }
+
+.logo-bloque {
+  margin-bottom: 40px;
+}
 </style>
 ```
 
 # Inicio
 
+**¡Bienvenido al Visualizador Longitudinal de Cohesión Social en Chile!**
 
-**Elige una de las pestañas disponibles para realizar el análisis**:
+Todos los gráficos fueron construidos a partir de los datos del **Estudio Longitudinal Social de Chile (ELSOC), COES**. Para ello, se han considerado a los individuos que han participado a lo menos en 3 olas del estudio. Para más información, consulte [aquí](https://conferencias.coes.cl/encuesta-panel/). 
+
+Para usar alguna de las figuras, citar como: **Urzúa, T., Iturra, J., Canales, R., Laffert, A. & Castillo, J. (2025). _Visualizador Longitudinal de Cohesión Social de Chile 2016-2023_.**
+
+**Instrucciones generales**:
 
 
   -   **_Longitudinal_**: En este apartado se comparan los promedios de las dimensiones y subdimensiones a través de un gráfico de líneas histórico. Para proyectar los análisis, debes seleccionar un elemento a visualizar.
   
-  -   **_Ranking_**: Sigue la misma lógica que la sección mapa, pero mostrando un ranking ordenado por dimensiones y subdimensiones, para cada ola disponible. 
+  -   **_Ranking_**: Sigue la misma lógica que la sección anterior, pero aquí se comparan los cambios a través del tiempo de los indicadores que componen las subdimensiones.
 
-  -   **_Bivariado_**: Aquí se encuentran dos selectores entre los que encontrarás las dimensiones y subdimensiones, además de algunas variables de caracterización sociodemográficas.  
+  -   **_Bivariado_**: Aquí se pueden cruzar subdimensiones de cohesión social con variables sociodemográficas, observando cómo se han comportado distintos grupos sociales durante los años.
 
 Todos los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
   
-Más información sobre la selección de variables, validación de los datos y construcción de los índices la puedes encontrar en el **Documento Metodológico** (esquina superior derecha). 
+Más información sobre la selección de variables, validación de los datos y construcción de los índices la puedes encontrar en el [**Documento Metodológico**](https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html) (esquina superior derecha). 
 
 
 Los **indicadores de cohesión social** disponibles en el visualizador son los que se presentan en **los siguientes esquemas**: 
 
-::::{.columns}
-:::{.column width="100%"}
-![](www/img/elsoc-hor.png)
-:::
+<p align="center">
+  <img src="www/img/elsoc-hor.png" width="80%">
+</p>
 
-:::{.column width="100%"}
-![](www/img/elsoc-ver.png)
-:::
-::::
-
-
+<p align="center">
+  <img src="www/img/elsoc-ver.png" width="80%">
+</p>
 
 # Análisis Longitudinal
 
@@ -183,12 +182,12 @@ tagList(
      6,
      selectizeInput(
        "subdims_from_area_v",
-       tags$span("Área vertical:", style = "font-weight:bold; font-size:18px;"),
+       tags$span("Cohesión vertical:", style = "font-weight:bold; font-size:18px;"),
        choices = NULL,
        multiple = TRUE,
        options = list(
          placeholder = "Elige subdimensiones",
-         maxItems = 4,
+         maxItems = 6,
          plugins = list("remove_button"),
          onInitialize = I('
            function() {
@@ -210,12 +209,12 @@ tagList(
      6,
      selectizeInput(
        "subdims_from_area_h",
-       tags$span("Área horizontal:", style = "font-weight:bold; font-size:18px;"),
+       tags$span("Cohesión horizontal:", style = "font-weight:bold; font-size:18px;"),
        choices = NULL,
        multiple = TRUE,
        options = list(
          placeholder = "Elige subdimensiones",
-         maxItems = 4,
+         maxItems = 7,
          plugins = list("remove_button"),
          onInitialize = I('
            function() {
@@ -315,7 +314,7 @@ sidebarPanel(
   # NUEVO selector de área 
   selectInput(
     inputId = "area_select",
-    label   = "Elige un Área:",
+    label   = "Elige un área de cohesión:",
     choices = sort(unique(df_long_bivariate$Areas)),
     selected = sort(unique(df_long_bivariate$Areas))[1]
   ),
@@ -393,8 +392,23 @@ df_comb <- df_comb %>%
 # 3) Plot: SOLO subdimensiones (líneas por subdimensión) usando 'Ola'
 
 
-# Paleta fija posicional (1º..4º considerando ambos selectores)
-my_colors <- c("#1f77b4", "#2ca02c", "purple", "orange")
+# Paleta fija posicional 
+my_colors_long <- c(
+  "Confianza en instituciones políticas" = "#99000D",
+  "Justicia distributiva" = "#4d5f0b",
+  "Autoeficacia política" = "#fFD900",
+  "Interés en política" = "#006D77",
+  "Participación política" = "#08519C",
+  "Preferencias autoritarias" = "#3F007D",
+  "Ayuda económica" = "#006D2C",
+  "Comportamiento prosocial" = "#333333",
+  "Confianza interpersonal" = "#745A07",
+  "Seguridad objetiva" = "#7A0177",
+  "Seguridad subjetiva" = "#F768A1",
+  "Pertenencia al Barrio" = "#FD8D3C",
+  "Satisfacción con el barrio" = "#662fe6")
+
+
 no_real_choice <- function(x) is.null(x) || length(x) == 0
 
 
@@ -421,81 +435,81 @@ make_grouped_choices <- function(df, na_group = "Dimensiones") {
 }
 
 
-# --- Paleta global por orden combinado (vertical + horizontal) ---
+# --- Paleta global por asignación ---
+
 build_color_map <- function(sel_v, sel_h) {
- sel_v  <- if (is.null(sel_v)) character(0) else sel_v
- sel_h  <- if (is.null(sel_h)) character(0) else sel_h
- sel_all <- c(sel_v, sel_h)
- if (length(sel_all) == 0) return(setNames(character(0), character(0)))
+  sel_v  <- if (is.null(sel_v)) character(0) else sel_v
+  sel_h  <- if (is.null(sel_h)) character(0) else sel_h
+  sel_all <- unique(c(sel_v, sel_h))
+  if (length(sel_all) == 0) return(setNames(character(0), character(0)))
 
+  # 1) Usa colores definidos en la paleta por NOMBRE (no posicional)
+  in_palette <- intersect(names(my_colors_long), sel_all)
+  cmap <- my_colors_long[in_palette]        # named vector: nombre -> hex
 
- sel_all <- sel_all[!duplicated(sel_all)]
- idx <- seq_len(min(length(sel_all), length(my_colors)))  # <- evita a:b con vector
- setNames(my_colors[idx], sel_all[idx])
+  # 2) Fallback ESTABLE para nombres no contemplados en la paleta
+  missing <- setdiff(sel_all, names(cmap))
+  if (length(missing) > 0) {
+    name2hex <- function(s) {
+      # hash simple y determinista a 0..359
+      h <- sum(utf8ToInt(s)) %% 360
+      grDevices::hcl(h = h, c = 60, l = 45)
+    }
+    fb <- vapply(missing, name2hex, FUN.VALUE = character(1))
+    cmap <- c(cmap, setNames(fb, missing))
+  }
+
+  cmap
 }
 
 
 # --- Añade trazas de un área usando df_comb ---
-add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_map, connectgaps = TRUE) {
- if (no_real_choice(selected_subdims)) return(p)
 
+add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_map,
+                            connectgaps = TRUE, showlegend_for = character(0)) {
+  if (no_real_choice(selected_subdims)) return(p)
 
- keep <- intersect(selected_subdims, names(color_map))
- if (length(keep) == 0) return(p)
+  keep <- intersect(selected_subdims, names(color_map))
+  if (length(keep) == 0) return(p)
 
+  all_olas <- df_comb %>%
+    dplyr::filter(Areas == area_label) %>%
+    dplyr::distinct(Ola) %>%
+    dplyr::arrange(Ola) %>%
+    dplyr::pull(Ola)
 
- # set de olas disponibles para ese "area_label"
- all_olas <- df_comb %>%
-   dplyr::filter(Areas == area_label) %>%
-   dplyr::distinct(Ola) %>%
-   dplyr::arrange(Ola) %>%
-   dplyr::pull(Ola)
+  dplot <- df_comb %>%
+    dplyr::filter(Areas == area_label, Subdimension %in% keep) %>%
+    dplyr::group_by(Ola, Subdimension) %>%
+    dplyr::summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop") %>%
+    dplyr::arrange(Ola)
 
+  if (nrow(dplot) == 0) return(p)
 
- dplot <- df_comb %>%
-   dplyr::filter(Areas == area_label, Subdimension %in% keep) %>%
-   dplyr::group_by(Ola, Subdimension) %>%
-   dplyr::summarise(Valor = mean(Valor, na.rm = TRUE), .groups = "drop") %>%
-   dplyr::arrange(Ola)
+  for (sd in keep) {
+    df_i <- dplyr::filter(dplot, Subdimension == sd) %>%
+      tidyr::complete(Ola = all_olas, fill = list(Valor = NA_real_)) %>%
+      dplyr::arrange(Ola)
 
-
- if (nrow(dplot) == 0) return(p)
-
-
- for (sd in keep) {
-   df_i <- dplyr::filter(dplot, Subdimension == sd)
-
-
-   # Completa todas las olas con NA para que exista el “gap”
-   df_i <- tidyr::complete(
-     df_i,
-     Ola = all_olas,
-     fill = list(Valor = NA_real_)
-   ) %>%
-     dplyr::arrange(Ola)
-
-
-   if (nrow(df_i) == 0) next
-
-
-   p <- p %>% plotly::add_trace(
-     data  = df_i,
-     x     = ~Ola, y = ~Valor,
-     type  = "scatter", mode = "lines+markers",
-     name  = paste0(sd, " — ", area_label),
-     legendgroup = sd,
-     line   = list(width = 3, color = unname(color_map[[sd]]), dash = line_dash),
-     marker = list(size = 8, color = unname(color_map[[sd]])),
-     connectgaps = connectgaps,   # ← clave
-     hovertemplate = paste0(
-       "<b>Ola:</b> %{x}",
-       "<br><b>Área:</b> ", area_label,
-       "<br><b>Elemento seleccionado:</b> ", sd,
-       "<br><b>Valor:</b> %{y:.2f}<extra></extra>"
-     )
-   )
- }
- p
+    p <- p %>% plotly::add_trace(
+      data  = df_i,
+      x     = ~Ola, y = ~Valor,
+      type  = "scatter", mode = "lines+markers",
+      name  = sd,                      # ← solo subdimensión
+      legendgroup = sd,                # ← agrupa vertical/horizontal
+      showlegend = sd %in% showlegend_for,   # ← leyenda solo si corresponde
+      line   = list(width = 3, color = unname(color_map[[sd]]), dash = line_dash),
+      marker = list(size = 8, color = unname(color_map[[sd]])),
+      connectgaps = connectgaps,
+      hovertemplate = paste0(
+        "<b>Ola:</b> %{x}",
+        "<br><b>Área:</b> ", area_label,
+        "<br><b>Subdimensión:</b> ", sd,
+        "<br><b>Valor:</b> %{y:.2f}<extra></extra>"
+      )
+    )
+  }
+  p
 }
 
 
@@ -527,31 +541,31 @@ observe({
 # --- DEFINICIONES DE VARIABLES DE SELECTORES ----
 definiciones <- c(
  "Seguridad pública" = "Incluye indicadores tanto objetivos como subjetivos que miden el nivel de seguridad de los individuos.",
- "Confianza en instituciones" = "Considera el grado de confianza que tienen los sujetos hacia las instituciones de orden político de la sociedad, tales como el Gobierno, el Congreso y los partidos políticos.",
- "Vínculos territoriales" = "Mide el sentido de pertenencia y la satisfacción de los individuos con su barrio de residencia.",
- "Redes sociales" = "Aborda las interacciones que evidencian la fortaleza y/o debilidad del vínculo social.",
- "Participación y actitudes políticas" = "Mide la participación en actividades de índole política y el interés hacia ella.",
- "Preferencias por autoritarismo" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave..",
- "Justicia distributiva" = "La percepción sobre qué tan justo es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
+"Confianza en instituciones" = "Considera el grado de confianza que tienen los sujetos hacia las instituciones de orden político de la sociedad, tales como el Gobierno, el Congreso y los partidos políticos.",
+"Vínculos territoriales" = "Mide el sentido de pertenencia y la satisfacción de los individuos con su barrio de residencia.",
+"Redes sociales" = "Aborda las interacciones que evidencian la fortaleza y/o debilidad del vínculo social, tal como el nivel de confianza interpersonal o la asistencia a reuniones públicas",
+"Participación y actitudes políticas" = "Mide la participación en actividades de índole política y el interés hacia ella.",
+"Preferencias por autoritarismo" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave.",
+"Justicia distributiva" = "La percepción sobre qué tan injusto es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
+# --- Subdimensiones (las que efectivamente aparecen en los selectores) ---
+"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave.",
+"Participación política" = "Participación en actividades políticas como firmar peticiones, asistir a marchas o participar en huelgas.",
+"Autoeficacia política" = "La percepción sobre la capacidad personal de influir en el proceso político a través del voto.",
+"Interés en política" = "El nivel de interés, conversación e información sobre temas políticos.",
+"Confianza en instituciones políticas" = "Considera el grado de confianza que tienen los sujetos hacia las instituciones de orden político de la sociedad, tales como el Gobierno, el Congreso y los partidos políticos.",
+"Seguridad objetiva" = "Medidas objetivas de criminalidad como frecuencia de peleas callejeras, robos y asaltos en el barrio.",
+"Seguridad subjetiva" = "Percepción personal sobre la seguridad y el grado de satisfacción con las medidas de seguridad.",
+"Pertenencia al Barrio" = "El grado de identificación e integración con el barrio de residencia.",
+"Satisfacción con el barrio" = "Evaluación de las características sociales del barrio (amigable, sociable, cordial, colaborador).",
+"Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista.",
+"Comportamiento prosocial" = "Participación en actividades comunitarias como reuniones públicas y la participación en voluntariado.",
+"Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido.",
+"Sexo" = "Se distingue entre hombre y mujer.",
+"Edad" = "Está medida por tramos etarios",
+"Ingresos" = "Se mide por tres grupos que tienen una representación aproximada a los ingresos de clase baja, clase media y clase alta.",
+"Educación" = "Considera cinco niveles educativos",
+"Ideología política" = "Se comprende en el espectro político desde izquierda hasta derecha"
 
-
- # --- Subdimensiones (las que efectivamente aparecen en los selectores) ---
- "Participación política" = "Participación en actividades políticas como firmar peticiones, asistir a marchas o participar en huelgas.",
- "Autoeficacia política" = "La percepción sobre la capacidad personal de influir en el proceso político a través del voto.",
- "Interés en política" = "El nivel de interés, conversación e información sobre temas políticos.",
-   "Confianza en instituciones políticas" = "Considera el grado de confianza que tienen los sujetos hacia las instituciones de orden político de la sociedad, tales como el Gobierno, el Congreso y los partidos políticos.",
- "Seguridad objetiva" = "Medidas objetivas de criminalidad como frecuencia de peleas callejeras, robos y asaltos en el barrio.",
- "Seguridad subjetiva" = "Percepción personal sobre la seguridad y el grado de satisfacción con las medidas de seguridad.",
- "Sentido de pertenencia" = "El grado de identificación e integración con el barrio de residencia.",
- "Satisfacción con el barrio" = "Evaluación de las características sociales del barrio (amigable, sociable, cordial, colaborador).",
- "Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista.",
- "Comportamiento prosocial" = "Participación en actividades comunitarias como reuniones públicas y la participación en voluntariado.",
- "Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido.",
- "Sexo" = "Se distingue entre hombre y mujer.",
- "Edad" = "Está medida por tramos etarios",
- "Ingresos" = "Se mide por tres grupos que tienen una representación aproximada a los ingresos de clase baja, clase media y clase alta.",
- "Educación" = "Considera cinco niveles educativos",
- "Ideología política" = "Se comprende en el espectro político desde izquierda hasta derecha"
 )
 
 
@@ -665,377 +679,138 @@ output$descripcion_longitudinal <- renderUI({
 
 # --- RENDER DEL GRÁFICO ---
 output$subdims_plot <- plotly::renderPlotly({
- # 1) Tomamos las selecciones actuales
- sel_v <- input$subdims_from_area_v
- sel_h <- input$subdims_from_area_h
+  sel_v <- input$subdims_from_area_v
+  sel_h <- input$subdims_from_area_h
 
-
- # 2) Gráfico vacío si no hay nada seleccionado
- if (no_real_choice(sel_v) && no_real_choice(sel_h)) {
-   return(
-     plotly::plot_ly() %>%
-       plotly::layout(
-         xaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         showlegend = FALSE,
-         paper_bgcolor = "rgba(0,0,0,0)",
-         plot_bgcolor = "rgba(0,0,0,0)"
-       )
-   )
- }
-
+  if (no_real_choice(sel_v) && no_real_choice(sel_h)) {
+    return(
+      plotly::plot_ly() %>%
+        plotly::layout(
+          xaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          yaxis = list(title = "", showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+          showlegend = FALSE,
+          paper_bgcolor = "rgba(0,0,0,0)",
+          plot_bgcolor = "rgba(0,0,0,0)"
+        )
+    )
+  }
 
  # 3) Colores consistentes
- color_map <- build_color_map(sel_v, sel_h)
+color_map <- build_color_map(sel_v, sel_h)
 
+# 4) Define quién “abre” leyenda
+show_v <- sel_v
+show_h <- setdiff(sel_h, sel_v)
 
- # 4) Trazas (activando connectgaps)
- p <- plotly::plot_ly()
- p <- add_area_traces(p, sel_v, "Area vertical",   line_dash = "dot", color_map = color_map, connectgaps = TRUE)
- p <- add_area_traces(p, sel_h, "Area horizontal", line_dash = "dash",  color_map = color_map, connectgaps = TRUE)
-
+p <- plotly::plot_ly()
+p <- add_area_traces(
+  p, sel_v, "Area vertical",
+  line_dash = "dot", color_map = color_map, connectgaps = TRUE,
+  showlegend_for = show_v           # ← todas las V con leyenda
+)
+p <- add_area_traces(
+  p, sel_h, "Area horizontal",
+  line_dash = "dash", color_map = color_map, connectgaps = TRUE,
+  showlegend_for = show_h           # ← solo H que no estén en V
+)
 
  # 5) Layout final
  p %>%
-   plotly::layout(
-     title  = "Serie temporal para categoría 'Alta' - 2016 a 2023",
-     xaxis  = list(title = "Ola", dtick = 1),
-     yaxis  = list(title = "Porcentaje", range = c(0, 100), ticksuffix = "%"),
-     showlegend = TRUE,
-     legend = list(
-       orientation = "v",
-       xanchor = "right",
-       yanchor = "bottom",
-       x = 1.02,
-       y = -0.27,
-       bgcolor = "rgba(255,255,255,0.8)",
-       bordercolor = "gray70",
-       borderwidth = 0.5,
-       font = list(size = 12),
-       tracegroupgap = 2,
-       itemwidth = 30
-     ),
-     annotations = list(
-       list(
-         text = "FUente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = XXX (individuos)",
-         xref = "paper", yref = "paper",
-         x = 0, y = -0.18,
-         xanchor = "left", yanchor = "top",
-         align = "left",
-         showarrow = FALSE,
-         font = list(size = 12, color = "gray40")
-       ),
-       list(
-         text = "(2): Los puntos ausentes en las olas significan que no hay datos disponibles para ese año.",
-         xref = "paper", yref = "paper",
-         x = 0, y = -0.24,
-         xanchor = "left", yanchor = "top",
-         align = "left",
-         showarrow = FALSE,
-         font = list(size = 12, color = "gray40")
-       )
-     ),
-     margin = list(b = 150, r = 60)
-   )
-})
-
-# ---- RANKING ----
-
-# Ranking ---------------------------------------------------------------------
-# Cargar datos y preparar estructura base
-load("data/bases-vis-elsoc/df_categ_jerarquica_ranking.RData")
-df_long <- df_categ_jerarquica_ranking %>% dplyr::filter(valor == "Alto")
-df_long$ola <- factor(df_long$ola, ordered = TRUE)
-df_long$prop <- df_long$prop * 100
-df_long$indicador <- df_long$indicador |> as.character()
-
-# Recodear nombres de indicadores
-df_long$indicador <- car::recode(var = df_long$indicador, recodes = "
-  'in_autoef_voto_deber'           = 'Deber votar';
-  'in_autoef_voto_expresion'       = 'Voto expresión';
-  'in_autoef_voto_influye'         = 'Voto influye';
-  'in_autor_gobierno_firme'        = 'Gob. firme';
-  'in_autor_mandatario_fuerte'     = 'Líder fuerte';
-  'in_autor_vida_disciplinar'      = 'Disciplina';
-  'in_ayuda_donar_dinero'          = 'Donar dinero';
-  'in_ayuda_prestar_dinero'        = 'Prestar dinero';
-  'in_ayuda_trabajo'               = 'Ayuda trabajo';
-  'in_bar_amigos'                  = 'Amigos barrio';
-  'in_bar_colaborador'             = 'Colaboración';
-  'in_bar_cordial'                 = 'Cordialidad';
-  'in_bar_ideal'                   = 'Barrio ideal';
-  'in_bar_identidad'               = 'Identidad';
-  'in_bar_integracion'             = 'Integración';
-  'in_bar_pertenencia'             = 'Pertenencia';
-  'in_bar_sociable'                = 'Sociabilidad';
-  'in_conf_inst_congreso'          = 'Conf. Congreso';
-  'in_conf_inst_gobierno'          = 'Conf. Gobierno';
-  'in_conf_inst_pp'                = 'Conf. partidos';
-  'in_conf_inter_altruismo'        = 'Altruismo';
-  'in_conf_inter_general'          = 'Conf. general';
-  'in_intpol_hablar_politica'      = 'Hablar política';
-  'in_intpol_infopolitica_medios'  = 'Info. política';
-  'in_intpol_interes_politica'     = 'Interés polít.';
-  'in_just_educacion'              = 'Justicia educ.';
-  'in_just_pensiones'              = 'Justicia pens.';
-  'in_just_salud'                  = 'Justicia salud';
-  'in_part_asiste_marcha'          = 'Marchas';
-  'in_part_firma_peticion'         = 'Peticiones';
-  'in_part_huelga'                 = 'Huelgas';
-  'in_prosoc_reunion_pub'          = 'Reuniones';
-  'in_prosoc_voluntariado'         = 'Voluntariado';
-  'in_seg_asaltos'                 = 'Asaltos';
-  'in_seg_peleas_calle'            = 'Peleas';
-  'in_seg_seguridad_perc'          = 'Seguridad perc.';
-  'in_seg_seguridad_sat'           = 'Sat. seguridad';
-  'in_seg_trafico_drogas'          = 'Tráfico drogas';")
-
-my_colors <- c(
-  # --- Participación electoral (azules; claro–medio–oscuro) ---
-  "Deber votar"     = "#74A9CF",
-  "Voto expresión"  = "#2B8CBE",
-  "Voto influye"    = "#08519C",
-
-  # --- Autoritarismo (violetas; bien espaciados) ---
-  "Gob. firme"      = "#3F007D",
-  "Líder fuerte"    = "#6A51A3",
-  "Disciplina"      = "#BCBDDC",
-
-  # --- Ayuda / prosocialidad (verdes; saturación creciente) ---
-  "Donar dinero"    = "#006D2C",
-  "Prestar dinero"  = "#31A354",
-  "Ayuda trabajo"   = "#74C476",
-
-  # --- Vínculos barriales (naranjas/marrones; 8 tonos separados) ---
-  "Amigos barrio"   = "#7F2704",
-  "Colaboración"    = "#A63603",
-  "Cordialidad"     = "#D94801",
-  "Barrio ideal"    = "#F16913",
-  "Identidad"       = "#FD8D3C",
-  "Integración"     = "#FDAE6B",
-  "Pertenencia"     = "#FDD0A2",
-  "Sociabilidad"    = "#FEE6CE",
-
-  # --- Confianza institucional (rojos; claro–medio–oscuro + intermedio) ---
-  "Conf. Congreso"  = "#99000D",
-  "Conf. Gobierno"  = "#CB181D",
-  "Conf. partidos"  = "#EF3B2C",
-  "Conf. general"   = "#FB6A4A",
-
-  # --- Altruismo (marrón neutro) ---
-  "Altruismo"       = "#8C564B",
-
-  # --- Interés y discusión política (cian/turquesa; bien diferenciados) ---
-  "Hablar política" = "#006D77",
-  "Info. política"  = "#119DA4",
-  "Interés polít."  = "#5C8DA4",
-
-  # --- Justicia distributiva (olivas/verdosos; más contraste) ---
-  "Justicia educ."  = "#3A5F0B",
-  "Justicia pens."  = "#6B8E23",
-  "Justicia salud"  = "#A6D96A",
-
-  # --- Participación colectiva (grises; pasos de luminancia) ---
-  "Marchas"         = "#4D4D4D",
-  "Peticiones"      = "#737373",
-  "Huelgas"         = "#969696",
-  "Reuniones"       = "#BDBDBD",
-  "Voluntariado"    = "#D9D9D9",
-
-  # --- Seguridad pública (magenta/rosas; ΔE alto entre tonos) ---
-  "Asaltos"         = "#7A0177",
-  "Peleas"          = "#AE017E",
-  "Seguridad perc." = "#DD3497",
-  "Sat. seguridad"  = "#F768A1",
-  "Tráfico drogas"  = "#FA9FB5"
-)
-
-df_long$color <- car::recode(df_long$indicador, "
-  'Deber votar'     = '#74A9CF';
-  'Voto expresión'  = '#2B8CBE';
-  'Voto influye'    = '#08519C';
-
-  'Gob. firme'      = '#3F007D';
-  'Líder fuerte'    = '#6A51A3';
-  'Disciplina'      = '#BCBDDC';
-
-  'Donar dinero'    = '#006D2C';
-  'Prestar dinero'  = '#31A354';
-  'Ayuda trabajo'   = '#74C476';
-
-  'Amigos barrio'   = '#7F2704';
-  'Colaboración'    = '#A63603';
-  'Cordialidad'     = '#D94801';
-  'Barrio ideal'    = '#F16913';
-  'Identidad'       = '#FD8D3C';
-  'Integración'     = '#FDAE6B';
-  'Pertenencia'     = '#FDD0A2';
-  'Sociabilidad'    = '#FEE6CE';
-
-  'Conf. Congreso'  = '#99000D';
-  'Conf. Gobierno'  = '#CB181D';
-  'Conf. partidos'  = '#EF3B2C';
-  'Conf. general'   = '#FB6A4A';
-
-  'Altruismo'       = '#8C564B';
-
-  'Hablar política' = '#006D77';
-  'Info. política'  = '#119DA4';
-  'Interés polít.'  = '#5C8DA4'; 
-
-  'Justicia educ.'  = '#3A5F0B';
-  'Justicia pens.'  = '#6B8E23';
-  'Justicia salud'  = '#A6D96A';
-
-  'Marchas'         = '#4D4D4D';
-  'Peticiones'      = '#737373';
-  'Huelgas'         = '#969696';
-  'Reuniones'       = '#BDBDBD';
-  'Voluntariado'    = '#D9D9D9';
-
-  'Asaltos'         = '#7A0177';
-  'Peleas'          = '#AE017E';
-  'Seguridad perc.' = '#DD3497';
-  'Sat. seguridad'  = '#F768A1';
-  'Tráfico drogas'  = '#FA9FB5'
-")
-
-df_long$indicador <- factor(df_long$indicador)
-
-# Selector reactivo de subdimensiones
-observeEvent(input$area_ranking, {
-  ch <- df_long |> dplyr::filter(area == input$area_ranking) |>
-    dplyr::distinct(subdimension) |> dplyr::arrange(subdimension) |>
-    dplyr::pull(subdimension)
-  updateSelectInput(session, "subdim_ranking", choices = ch, selected = ch[1])
-}, ignoreInit = FALSE)
-
-# Datos reactivos para gráfico
-bar_data <- reactive({
-  req(input$subdim_ranking, input$ola_ranking, input$area_ranking)
-  out <- df_long %>% dplyr::filter(
-    area == input$area_ranking,
-    subdimension == input$subdim_ranking,
-    ola %in% input$ola_ranking
-  ) %>% dplyr::mutate(ola = as.character(ola))
-  out
-}) %>% shiny::bindCache(input$subdim_ranking, input$ola_ranking)
-
-# my_colors[unique(df_long[["indicador"]])]
-# mine_colors <- my_colors[unique(bar_data()[["indicador"]])]
-
-# Render del gráfico de barras
-output$bar_plot <- renderPlotly({
-  df_long_for_barplot <- bar_data()
-  req(all(c("ola","indicador","prop") %in% names(df_long_for_barplot)))
-  validate(need(nrow(df_long_for_barplot) > 0,
-           "No hay datos para la dimensión seleccionada."))
-  validate(need(!all(is.na(df_long_for_barplot$prop)),
-           "No hay valores disponibles (todo es NA) para esta selección."))
-  fname <- paste0(input$ola_ranking, "_", input$subdim_ranking)
-  
-  plot_ly(data = df_long_for_barplot, x = ~ola, y = ~prop, color = ~indicador,colors = ~color,
-    type = "bar", hoverinfo = "text",
-    text = ~paste0("Año: ", ola, "<br>Indicador: ", indicador,
-                   "<br>Proporción: ", round(prop, 2), "%")) %>%
-    layout(barmode = "group",
-      title = list(
-    text = paste0("Comparación para categoría 'Alta' en indicadores de ",
-                     "subdimensión ", input$subdim_ranking),
-    # x = 0,              # ← 0 = left, 0.5 = center, 1 = right
-    xanchor = "center",   # anchor aligns the title text relative to x
-    # y = 0,              # (optional) vertical position
-    yanchor = "top",    # anchor vertically
-    font = list(size = 18, family = "Arial", color = "black")
+  plotly::layout(
+    title  = "Serie temporal para categoría 'Alta' - 2016 a 2023",
+    xaxis  = list(title = "Ola", dtick = 1),
+    yaxis  = list(title = "Porcentaje", range = c(0, 100), ticksuffix = "%"),
+    showlegend = TRUE,
+    legend = list(
+      orientation = "v",
+      xanchor = "right",
+      yanchor = "bottom",
+      x = 1.02,
+      y = -0.40,
+      bgcolor = "rgba(255,255,255,0.8)",
+      bordercolor = "gray70",
+      borderwidth = 0.5,
+      font = list(size = 12),
+      tracegroupgap = 2,
+      itemwidth = 30
     ),
-    xaxis = list(title = "Ola"),
-    yaxis = list(title = "Proporción", range = c(0, 100), ticksuffix = "%"),
-      legend = list(title = list(text = "Indicador"),
-        orientation = "h",
-        xanchor = "right",yanchor = "bottom",
-        x = 1,y = -0.3
-        ),
-      margin = list(t = 120,r = 120),
-      images = list(
-        list(
-          source = "www/images/logo-ocs-25.png",  # o una ruta local
-          xref = "paper", yref = "paper",
-          x = 1.07, y = 1.2,  # posición (ajustable)
-          sizex = 0.25, sizey = 0.2,
-          xanchor = "right", yanchor = "top",
-          layer = "above"
-          )
-        ),
+    images = list(
+      list(
+        source = "www/images/logo-ocs-25.png",
+        xref = "paper",
+        yref = "paper",
+        x = 1.1,
+        y = 1,
+        sizex = 0.25,
+        sizey = 0.2,
+        xanchor = "right",
+        yanchor = "top",
+        layer = "above"
+      )
+    ),
     annotations = list(
-        list(
-          text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = XXXX (individuos)",
-          xref = "paper", yref = "paper",
-          x = 0, y = -0.25,
-          xanchor = "left", yanchor = "top",
-          showarrow = FALSE,
-          font = list(size = 12, color = "gray40", family = "Arial")
-          )
-        )    
-      ) %>% 
-    config(
+      list(
+        text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = 3666 (individuos)",
+        xref = "paper",
+        yref = "paper",
+        x = 0,
+        y = -0.18,
+        xanchor = "left",
+        yanchor = "top",
+        align = "left",
+        showarrow = FALSE,
+        font = list(size = 12, color = "gray40")
+      ),
+      list(
+        text = "Los puntos ausentes en las olas significan que no hay datos disponibles para ese año.",
+        xref = "paper",
+        yref = "paper",
+        x = 0,
+        y = -0.24,
+        xanchor = "left",
+        yanchor = "top",
+        align = "left",
+        showarrow = FALSE,
+        font = list(size = 12, color = "gray40")
+      ),
+      list(
+        text = "Líneas con puntos = Cohesión vertical; Líneas con guiones = Cohesión horizontal.",
+        xref = "paper",
+        yref = "paper",
+        x = 0,
+        y = -0.30,
+        xanchor = "left",
+        yanchor = "top",
+        align = "left",
+        showarrow = FALSE,
+        font = list(size = 12, color = "gray40")
+      )
+    ),
+    margin = list(b = 150, r = 120)
+  ) %>%
+  plotly::config(
     displaylogo = TRUE,
     toImageButtonOptions = list(
       format = "png",
-      filename = paste0(stringi::stri_replace_all_regex((tolower(input$subdim_ranking)), "[^A-Za-z]", "")), 
-      height = 700,
-      width  = 1200,
-      scale  = 2
+      filename = paste0(
+        "serie_temporal_",
+        stringi::stri_replace_all_regex(
+          tolower(input$subdim_select),
+          "[^A-Za-z0-9]",
+          "_"
+        )
       ),
+      height = 700,
+      width = 1200,
+      scale = 2
+    ),
     modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
                                "resetScale2d", "toggleSpikelines")
-    ) 
-}) %>% shiny::bindEvent(input$subdim_ranking, input$ika, input$ola_ranking)
+  )
+ })
 
-# Definiciones de subdimensiones
-definiciones_ranking <- c(
-  "Participación política" = "Participación en actividades políticas como firmar
-  peticiones, asistir a marchas o participar en huelgas.",
-  "Autoeficacia política" = "Percepción sobre la capacidad personal de influir
-  en el proceso político mediante el voto.",
-  "Interés en política" = "Nivel de interés, conversación e información sobre
-  temas políticos.",
-  "Confianza en instituciones políticas" = "Grado de confianza hacia
-  instituciones de orden político como el Gobierno o el Congreso.",
-  "Seguridad objetiva" = "Medidas objetivas de criminalidad como peleas o
-  asaltos en el barrio.",
-  "Seguridad subjetiva" = "Percepción personal sobre seguridad y satisfacción
-  con las medidas existentes.",
-  "Pertenencia al Barrio" = "Identificación e integración con el barrio de
-  residencia.",
-  "Satisfacción con el barrio" = "Evaluación de aspectos sociales del barrio
-  (amistad, cordialidad, colaboración).",
-  "Confianza interpersonal" = "Nivel de confianza hacia otros y creencia en el
-  altruismo general.",
-  "Comportamiento prosocial" = "Participación en actividades comunitarias como
-  reuniones o voluntariado.",
-  "Ayuda económica" = "Disposición a prestar dinero o ayudar a conseguir trabajo.",
-"Justicia distributiva" = "La percepción sobre qué tan justo es el reparto d  e recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
-"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave."
-)
+# ---- RANKING ----
 
-# Render de descripciones
-output$descripcion_barras <- renderUI({
-  sel_v <- input$subdim_ranking %||% character(0)
-  if (length(sel_v) == 0) return(NULL)
-  sel_all <- unique(c(sel_v))
-  cards <- lapply(sel_all, function(nm) {
-    desc <- definiciones_ranking[[nm]]
-    if (is.null(desc) || is.na(desc) || identical(desc, ""))
-      desc <- "No tengo una descripción asociada a esta subdimensión todavía."
-    tags$div(
-      style = paste("margin-top:8px; padding:10px; border-left:4px solid #1f77b4;",
-                    "background:#f7f7f7; border-radius:6px;"),
-      tags$strong(nm),
-      tags$p(style = "margin:6px 0 0 0;", desc)
-    )
-  })
-  tagList(cards)
-})
 
 # ----BIVARIADO ----
 
@@ -1166,11 +941,13 @@ dat_filtered <- reactive({
     dplyr::arrange(Ola, levels)
 })
 
-  output$plot_bivariado <- plotly::renderPlotly({
-    req(dat_filtered())
+output$plot_bivariado <- plotly::renderPlotly({
+  req(dat_filtered())
+  
+  df_plot <- dat_filtered()
 
-   plotly::plot_ly(
-    dat_filtered(),
+  plotly::plot_ly(
+    df_plot,
     x = ~Ola,
     y = ~Valor,
     color = ~levels,
@@ -1178,14 +955,83 @@ dat_filtered <- reactive({
     mode = "lines+markers",
     line = list(width = 2),
     marker = list(size = 6),
-    connectgaps = TRUE
+    connectgaps = TRUE,
+    hovertemplate = ~paste0(
+      "<b>Ola:</b> ", Ola,
+      "<br><b>Área:</b> ", Areas,
+      "<br><b>Subdimensión:</b> ", Subdimension,
+      "<br><b>Categoría:</b> ", Categoria,
+      "<br><b>Nivel:</b> ", levels,
+      "<br><b>Valor:</b> ", sprintf("%.2f", Valor), "%",
+      "<extra></extra>"
+    )
   ) %>%
     plotly::layout(
-      title = paste0("Subdimensión: ", input$subdim_select,
-                     " | Categoría: ", input$Categoria_select),
+      title = "Serie temporal para categoría 'Alta' (2016 a 2023)",
       xaxis = list(title = "Ola"),
-      yaxis = list(title = "Porcentaje", ticksuffix = "%")
+      yaxis = list(title = "Porcentaje", ticksuffix = "%"),
+      legend = list(
+        orientation = "v",
+        xanchor = "right",
+        yanchor = "bottom",
+        x = 1,
+        y = -0.40,
+        bgcolor = "rgba(255,255,255,0.8)",
+        bordercolor = "gray70",
+        borderwidth = 0.5,
+        font = list(size = 12),
+        tracegroupgap = 2,
+        itemwidth = 30
+      ),
+      margin = list(r = 120, b = 120),
+      images = list(
+        list(
+          source = "www/images/logo-ocs-25.png",
+          xref = "paper", 
+          yref = "paper",
+          x = 1.1, 
+          y = 1,
+          sizex = 0.25, 
+          sizey = 0.2,
+          xanchor = "right", 
+          yanchor = "top",
+          layer = "above"
+        )
+      ),
+      annotations = list(
+        list(
+          text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = 3666 (individuos)",
+          xref = "paper", 
+          yref = "paper",
+          x = 0, 
+          y = -0.22,
+          xanchor = "left", 
+          yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        )
+      )
+    ) %>%
+    plotly::config(
+      displaylogo = TRUE,
+      toImageButtonOptions = list(
+        format = "png",
+        filename = paste0(
+          "serie_temporal_",
+          stringi::stri_replace_all_regex(
+            tolower(input$subdim_select), 
+            "[^A-Za-z0-9]", 
+            "_"
+          )
+        ),
+        height = 700,
+        width = 1200,
+        scale = 2
+      ),
+      modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
+                                 "resetScale2d", "toggleSpikelines")
     )
-  })
+})
 
 ```
