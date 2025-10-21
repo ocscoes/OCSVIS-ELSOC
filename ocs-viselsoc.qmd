@@ -5,7 +5,7 @@ format:
     logo: "www/images/ocs-negro.png"
     nav-buttons:
       - text: "VISLATAM  |"
-        href: https://ocs-coes.com/analisis/visualizador-latam/
+        href: https://gabrielcortesp.shinyapps.io/visualizador-la/
         target: _blank     
       - text: "Documento Metodológico  |"
         href: https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html
@@ -21,6 +21,7 @@ resources:
   - www
   - css
 ---
+
 
 ```{r}
 #| context: setup
@@ -108,7 +109,6 @@ df_long$dimension[df_long$subdimension=="Justicia distributiva"] <- "Justicia Di
 
 ```{=HTML}
 <div class="logo-bloque">
-  <a href="https://ocs-coes.com/" target="_blank">
     <img src="www/img/viselsoc-logo.png" class="centered-img" width="20%">
   </a>
 </div>
@@ -129,24 +129,20 @@ df_long$dimension[df_long$subdimension=="Justicia distributiva"] <- "Justicia Di
 
 # Inicio
 
-**¡Bienvenido al Visualizador Longitudinal de Cohesión Social en Chile!**
+Este es el **Visualizador Longitudinal de Cohesión Social en Chile**. Esta herramienta te permitirá realizar análisis de manera interactiva mediante tres tipos de visualizaciones, donde podrás ver los **cambios en el tiempo** de los principales indicadores de cohesión social.
 
-Todos los gráficos fueron construidos a partir de los datos del **Estudio Longitudinal Social de Chile (ELSOC), COES**. Para ello, se han considerado a los individuos que han participado a lo menos en 3 olas del estudio. Para más información, consulte [aquí](https://conferencias.coes.cl/encuesta-panel/). 
+En las **siguientes pestañas** encontrarás: 
 
-Para usar alguna de las figuras, citar como: **Urzúa, T., Iturra, J., Canales, R., Laffert, A. & Castillo, J. (2025). _Visualizador Longitudinal de Cohesión Social de Chile 2016-2023_.**
-
-**Instrucciones generales**:
-
-
-  -   **_Longitudinal_**: En este apartado se comparan los promedios de las dimensiones y subdimensiones a través de un gráfico de líneas histórico. Para proyectar los análisis, debes seleccionar un elemento a visualizar.
+  -   **_Sección Longitudinal_**: Compara las proporciones de nivel alto de las subdimensiones a través de un gráfico de líneas histórico.
   
-  -   **_Ranking_**: Sigue la misma lógica que la sección anterior, pero aquí se comparan los cambios a través del tiempo de los indicadores que componen las subdimensiones.
+  -   **_Sección Ranking_**: Compara las proporciones de nivel alto de los indicadores que componen una subdimensión.
 
-  -   **_Bivariado_**: Aquí se pueden cruzar subdimensiones de cohesión social con variables sociodemográficas, observando cómo se han comportado distintos grupos sociales durante los años.
+  -   **_Sección Bivariado_**: Compara cómo varían las subdimensiones de la cohesión social entre distintos grupos sociales.
 
-Todos los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados.
-  
-Más información sobre la selección de variables, validación de los datos y construcción de los índices la puedes encontrar en el [**Documento Metodológico**](https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/index.html) (esquina superior derecha). 
+
+Todos los gráficos fueron construidos a partir de los datos del **Estudio Longitudinal Social de Chile (ELSOC), COES**. Para ello, se han considerado a los individuos que han participado a lo menos en 3 olas del estudio. Además, los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados. Para más información sobre la selección de variables, validación de los datos y construcción de los índices, revisar el **Documento Metodológico** (esquina superior derecha). 
+
+Cómo citar: **Urzúa, T., Iturra, J., Canales, R., Laffert, A. & Castillo, J. (2025). _Visualizador Longitudinal de Cohesión Social de Chile 2016-2023_.**
 
 
 Los **indicadores de cohesión social** disponibles en el visualizador son los que se presentan en **los siguientes esquemas**: 
@@ -512,16 +508,23 @@ add_area_traces <- function(p, selected_subdims, area_label, line_dash, color_ma
 }
 
 
-# --- SELECTORES (solo df_comb) ---
+# --- SELECTORES (solo df_comb) CON INICIALIZACIÓN ---
 observe({
  choices_v <- df_comb %>%
    dplyr::filter(Areas == "Area vertical") %>%
    dplyr::select(Dimension, Subdimension) %>%
    make_grouped_choices(na_group = "Dimensiones")
 
+ # Seleccionar la primera subdimensión disponible al inicializar
+ initial_selection <- if (length(choices_v) > 0) {
+   choices_v[[1]][1]  # Primera subdimensión del primer grupo
+ } else {
+   NULL
+ }
 
  updateSelectizeInput(session, "subdims_from_area_v",
-                      choices = choices_v, selected = NULL)
+                      choices = choices_v, 
+                      selected = initial_selection)
 })
 
 
@@ -531,9 +534,16 @@ observe({
    dplyr::select(Dimension, Subdimension) %>%
    make_grouped_choices(na_group = "Dimensiones")
 
+ # Seleccionar la primera subdimensión disponible al inicializar
+ initial_selection <- if (length(choices_h) > 0) {
+   choices_h[[1]][1]  # Primera subdimensión del primer grupo
+ } else {
+   NULL
+ }
 
  updateSelectizeInput(session, "subdims_from_area_h",
-                      choices = choices_h, selected = NULL)
+                      choices = choices_h, 
+                      selected = initial_selection)
 })
 
 
@@ -545,9 +555,9 @@ definiciones <- c(
 "Redes sociales" = "Aborda las interacciones que evidencian la fortaleza y/o debilidad del vínculo social, tal como el nivel de confianza interpersonal o la asistencia a reuniones públicas",
 "Participación y actitudes políticas" = "Mide la participación en actividades de índole política y el interés hacia ella.",
 "Preferencias por autoritarismo" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave.",
-"Justicia distributiva" = "La percepción sobre qué tan injusto es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones.",
+"Justicia distributiva" = "La percepción sobre qué tan injusto es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones (re-escalada: valores altos indican mayor respaldo a principios de justicia distributiva).",
 # --- Subdimensiones (las que efectivamente aparecen en los selectores) ---
-"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave.",
+"Preferencias autoritarias" = "El grado de acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave (re-escalada: valores altos indican mayor desacuerdo con posiciones autoritarias (mayor preferencia por normas democráticas).",
 "Participación política" = "Participación en actividades políticas como firmar peticiones, asistir a marchas o participar en huelgas.",
 "Autoeficacia política" = "La percepción sobre la capacidad personal de influir en el proceso político a través del voto.",
 "Interés en política" = "El nivel de interés, conversación e información sobre temas políticos.",
@@ -556,7 +566,7 @@ definiciones <- c(
 "Seguridad subjetiva" = "Percepción personal sobre la seguridad y el grado de satisfacción con las medidas de seguridad.",
 "Pertenencia al Barrio" = "El grado de identificación e integración con el barrio de residencia.",
 "Satisfacción con el barrio" = "Evaluación de las características sociales del barrio (amigable, sociable, cordial, colaborador).",
-"Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista.",
+"Confianza interpersonal" = "El nivel de confianza hacia otras personas y el acuerdo en que los demás actúan de manera altruista (re-escalada: valores altos indican mayor confianza interpersonal).",
 "Comportamiento prosocial" = "Participación en actividades comunitarias como reuniones públicas y la participación en voluntariado.",
 "Ayuda económica" = "Disposición a prestar dinero y ayudar a conseguir trabajo a un conocido.",
 "Sexo" = "Se distingue entre hombre y mujer.",
@@ -603,7 +613,7 @@ observeEvent(input$subdims_from_area_v, {
    }
  }
  prev_sel$v <- cur
-}, ignoreInit = TRUE, priority = 10)
+}, ignoreInit = FALSE, priority = 10)  # ← CAMBIADO A FALSE
 
 
 # Cuando cambia el selector HORIZONTAL
@@ -634,7 +644,7 @@ observeEvent(input$subdims_from_area_h, {
    }
  }
  prev_sel$h <- cur
-}, ignoreInit = TRUE, priority = 10)
+}, ignoreInit = FALSE, priority = 10)  # ← CAMBIADO A FALSE
 
 
 # --- Render de la descripción ---
@@ -697,7 +707,7 @@ output$subdims_plot <- plotly::renderPlotly({
  # 3) Colores consistentes
 color_map <- build_color_map(sel_v, sel_h)
 
-# 4) Define quién “abre” leyenda
+# 4) Define quién "abre" leyenda
 show_v <- sel_v
 show_h <- setdiff(sel_h, sel_v)
 
@@ -910,8 +920,8 @@ df_long <- df_long %>%
       indicador == "Salud"  ~ "#006D2C", 
 
       # ── Participación política (grises + azules para destacar) ───────
-      indicador == "Marchas"         ~ "#4D4D4D",
-      indicador == "Peticiones"      ~ "#737373",
+      indicador == "Marchas"         ~ "#2c2c2c",
+      indicador == "Peticiones"      ~ "#585858",
       indicador == "Huelgas"         ~ "#969696",
       indicador == "Reuniones"       ~ "#0059FF",
       indicador == "Voluntariado"    ~ "#dae6ffff",
@@ -956,43 +966,68 @@ make_grouped_choices_rank <- function(df_area) {
     { split(.$subdimension, .$dimension) }   # <- optgroups
 }
 
+# NUEVO: Inicializar el selector de área con la primera área disponible
+observe({
+  # Obtener las áreas disponibles
+  areas_disponibles <- df_long %>% 
+    dplyr::distinct(area) %>% 
+    dplyr::arrange(area) %>% 
+    dplyr::pull(area)
+  
+  # Seleccionar la primera área disponible
+  if (length(areas_disponibles) > 0) {
+    updateSelectInput(
+      session, 
+      "area_ranking",
+      choices = areas_disponibles,
+      selected = areas_disponibles[1]
+    )
+  }
+})
+
 # cuando cambia el área, actualiza el selector de subdimensiones (agrupado)
 observeEvent(input$area_ranking, {
+  req(input$area_ranking)  # asegura que haya un área seleccionada
+  
   df_area <- df_long %>% dplyr::filter(area == input$area_ranking)
   ch_grouped <- df_area %>%
     dplyr::distinct(dimension, subdimension) %>%
     dplyr::arrange(dimension, subdimension) %>%
     { split(.$subdimension, .$dimension) }
 
+  # Seleccionar la primera subdimensión disponible
+  primera_subdim <- sort(unique(df_area$subdimension))[1]
+
   updateSelectizeInput(
     session, "subdim_ranking",
     choices  = ch_grouped,
-    selected = sort(unique(df_area$subdimension))[1],   # <- NO selecciona nada
+    selected = primera_subdim,   # ← selecciona la primera
     server   = TRUE
   )
   
+  # Al inicializar, también seleccionar todas las olas disponibles
   updateCheckboxGroupInput(session, "ola_ranking",
-  choices  = sort(unique(df_long$ola)),
-  selected = character(0),
-  # selected = sort(unique(df_long$ola)),
-  inline   = TRUE
-)
+    choices  = sort(unique(df_area$ola)),
+    selected = sort(unique(df_area$ola)),  # ← selecciona todas las olas
+    inline   = TRUE
+  )
 
-}, ignoreInit = FALSE)
+}, ignoreInit = FALSE)  # ← se ejecuta al inicializar
 
 
-# cuando cambia el área, actualiza el selector de subdimensiones (agrupado)
+# cuando cambia la subdimensión, actualiza las olas disponibles
 observeEvent(input$subdim_ranking, {
-  df_area <- df_long %>% dplyr::filter(area == input$area_ranking)
-  updateCheckboxGroupInput(session, "ola_ranking",
-  choices  = sort(unique(df_area$ola)),
-  # selected = character(0),
-  selected = sort(unique(df_area$ola)),
-  inline   = TRUE
-)
-
+  req(input$area_ranking)  # asegura que haya un área seleccionada
   
-}, ignoreInit = FALSE)
+  df_area <- df_long %>% dplyr::filter(area == input$area_ranking)
+  
+  updateCheckboxGroupInput(session, "ola_ranking",
+    choices  = sort(unique(df_area$ola)),
+    selected = sort(unique(df_area$ola)),  # mantiene todas seleccionadas
+    inline   = TRUE
+  )
+  
+}, ignoreInit = FALSE)  # ← se ejecuta al inicializar
 
 
 # Render del gráfico de barras
@@ -1048,11 +1083,23 @@ output$bar_plot <- renderPlotly({
         list(
           text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = 3,666 (individuos)",
           xref = "paper", yref = "paper",
-          x = 0, y = -0.25,
+          x = 0, y = -0.21,
           xanchor = "left", yanchor = "top",
           showarrow = FALSE,
-          font = list(size = 12, color = "gray40", family = "Arial")
-          )
+          font = list(size = 12, color = "gray40")
+          ),
+        list(
+        text = "Los años que no cuentan con barras se debe a que no hay datos disponibles para esa ola.",
+        xref = "paper",
+        yref = "paper",
+        x = 0,
+        y = -0.27,
+        xanchor = "left",
+        yanchor = "top",
+        align = "left",
+        showarrow = FALSE,
+        font = list(size = 12, color = "gray40")
+      )
         )    
       ) %>% 
     config(
@@ -1088,12 +1135,12 @@ definiciones_ranking <- c(
   "Satisfacción con el barrio" = "Evaluación de aspectos sociales del barrio
   (amistad, cordialidad, colaboración).",
   "Confianza interpersonal" = "Nivel de confianza hacia otros y creencia en el
-  altruismo general.",
+  altruismo general (re-escalada: valores altos indican mayor confianza interpersonal).",
   "Comportamiento prosocial" = "Participación en actividades comunitarias como
   reuniones o voluntariado.",
   "Ayuda económica" = "Disposición a prestar dinero o ayudar a conseguir trabajo.",
-"Justicia distributiva" = "La percepción sobre qué tan injusto es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones. (valores altos indican mayor injusticia)",
-"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave."
+"Justicia distributiva" = "La percepción sobre qué tan injusto es el reparto de recursos y oportunidades en la sociedad, considerando salud, educación y pensiones (re-escalada: valores altos indican mayor respaldo a principios de justicia distributiva).",
+"Preferencias autoritarias" = "El acuerdo respecto a ideales autoritarios, como la preferencia por gobiernos firmes, mandatarios fuertes y la obediencia como valor clave (re-escalada: valores altos indican mayor desacuerdo con posiciones autoritarias (mayor preferencia por normas democráticas)."
 )
 
 # Render de descripciones
