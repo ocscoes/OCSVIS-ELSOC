@@ -129,7 +129,7 @@ df_long$dimension[df_long$subdimension=="Justicia distributiva"] <- "Justicia Di
 
 # Inicio
 
-En esta página se encuentra el **Visualizador Longitudinal de Cohesión Social en Chile VISELSOC**. Esta herramienta le permitirá realizar análisis de manera interactiva con datos longitudinales para Chile entre 2016 y 2023. El modelo conceptual utilizado como base para las visualizaciones considera dos grandes áreas de cohesión social (horizontal y vertical), las que a su vez se organizan en dimensiones, subdimensiones e indicadores (ver esquemas abajo).
+En esta página se encuentra el **Visualizador Longitudinal de Cohesión Social en Chile VISELSOC**. Esta herramienta le permitirá realizar análisis de manera interactiva con datos longitudinales para Chile entre 2016 y 2023. El modelo conceptual utilizado como base para las visualizaciones considera dos grandes áreas de cohesión social: **horizontal**, la que aborda las relaciones entre individuos y grupos sociales, y **vertical**, la cual captura las interacciones entre los sujetos y las instituciones de la sociedad. Estas áreas se organizan en dimensiones, subdimensiones e indicadores (ver esquemas abajo).
 
 El visualizador ofrece tres posibilidades, a las que se puede acceder desde el menú superior: 
 
