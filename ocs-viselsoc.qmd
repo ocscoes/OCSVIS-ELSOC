@@ -129,23 +129,32 @@ df_long$dimension[df_long$subdimension=="Justicia distributiva"] <- "Justicia Di
 
 # Inicio
 
-Este es el **Visualizador Longitudinal de Cohesión Social en Chile**. Esta herramienta te permitirá realizar análisis de manera interactiva mediante tres tipos de visualizaciones, donde podrás ver los **cambios en el tiempo** de los principales indicadores de cohesión social.
+En esta página se encuentra el **Visualizador Longitudinal de Cohesión Social en Chile VISELSOC**. Esta herramienta le permitirá realizar análisis de manera interactiva con datos longitudinales para Chile entre 2016 y 2023. El modelo conceptual utilizado como base para las visualizaciones considera dos grandes áreas de cohesión social (horizontal y vertical), las que a su vez se organizan en dimensiones, subdimensiones e indicadores (ver esquemas abajo).
 
-En las **siguientes pestañas** encontrarás: 
+El visualizador ofrece tres posibilidades, a las que se puede acceder desde el menú superior: 
 
-  -   **_Sección Longitudinal_**: Compara las proporciones de nivel alto de las subdimensiones a través de un gráfico de líneas histórico.
+
+  -   **_Longitudinal_**: Compara subdimensiones de cohesión social a través del tiempo.
+
   
-  -   **_Sección Ranking_**: Compara las proporciones de nivel alto de los indicadores que componen una subdimensión.
+  -   **_Ranking_**: Compara indicadores de una misma subdimension en el tiempo.
 
-  -   **_Sección Bivariado_**: Compara cómo varían las subdimensiones de la cohesión social entre distintos grupos sociales.
+  -   **_Bivariado_**: Cruces de subdimensiones de la cohesión social con otras variables de interés, como género, educación y tendencia política.
+
+Los gráficos se generan a partir  de los datos del [Estudio Longitudinal Social de Chile (ELSOC)](https://conferencias.coes.cl/encuesta-panel/), de [COES](https://coes.cl/). ELSOC es una encuesta longitudinal que sigue a las mismas personas anualmente entre los años 2016 y 2023, siendo un estudio único en su tipo en Chile y América Latina. 
+
+Los análisis consideran a quienes han participado a lo menos en 3 olas del estudio, lo que asciende a 3666 individuos.
+
+Los indicadores, subdimensiones y dimensiones fueron construidos a partir de porcentajes de quienes responden a las categorías alta y muy alta de cada variable.
+
+Para más información sobre la selección de variables, validación de los datos y construcción de los índices, revisar el [**Documento Metodológico**](https://ocscoes.github.io/propuesta-medicion-elsoc/output/book-cohesion-elsoc/docs/) (esquina superior derecha).
+
+Los graficos producidos con este visualizador se pueden descargar y **citar de la siguiente manera**: **Urzúa, T., Iturra, J., Canales, R., Laffert, A. & Castillo, J. (2025). _Visualizador Longitudinal de Cohesión Social de Chile 2016-2023_. Observatorio de Cohesión Social OCS, [https://doi.org/10.5281/zenodo.17408345](https://doi.org/10.5281/zenodo.17408345).** 
 
 
-Todos los gráficos fueron construidos a partir de los datos del **Estudio Longitudinal Social de Chile (ELSOC), COES**. Para ello, se han considerado a los individuos que han participado a lo menos en 3 olas del estudio. Además, los indicadores, subdimensiones y dimensiones fueron construidos a partir de índices promediados. Para más información sobre la selección de variables, validación de los datos y construcción de los índices, revisar el **Documento Metodológico** (esquina superior derecha). 
+**Esquemas de cohesión social**
 
-Cómo citar: **Urzúa, T., Iturra, J., Canales, R., Laffert, A. & Castillo, J. (2025). _Visualizador Longitudinal de Cohesión Social de Chile 2016-2023_.**
-
-
-Los **indicadores de cohesión social** disponibles en el visualizador son los que se presentan en **los siguientes esquemas**: 
+Los indicadores de cohesión social disponibles en el visualizador son los que se presentan en los siguientes esquemas, organizados en subdimensiones, dimensiones y áreas (vertical y horizontal):
 
 <p align="center">
   <img src="www/img/elsoc-hor.png" width="80%">
@@ -874,64 +883,65 @@ df_long <- df_long %>%
   mutate(
     color = case_when(
       # ── Autoeficacia política (azules bien contrastados) ─────────────
-      indicador == "Deber votar"     ~ "#74A9CF",
-      indicador == "Voto es expresión"  ~ "#2B8CBE",
-      indicador == "Influye votar"    ~ "#08519C",
+      indicador == "Deber votar"     ~ "#7ab6e0",
+      indicador == "Voto es expresión"  ~ "#033b74",
+      indicador == "Influye votar"    ~ "#1a82b6",
 
       # ── Preferencias autoritarias (violetas de claro→oscuro) ─────────
-      indicador == "Disciplina"      ~ "#BCBDDC",
-      indicador == "Líder fuerte"    ~ "#6A51A3",
-      indicador == "Gob. firme"      ~ "#3F007D",
+      indicador == "Disciplina"      ~ "#27155e",
+      indicador == "Líder fuerte"    ~ "#cca7f1",
+      indicador == "Gob. firme"      ~ "#5b37af",
 
       # ── Ayuda económica (verdes de claro→oscuro) ─────────────────────
-      indicador == "Ayuda trabajo"   ~ "#74C476",
-      indicador == "Prestar dinero"  ~ "#31A354",
-      indicador == "Donar dinero"    ~ "#006D2C",
+      indicador == "Ayuda trabajo"   ~ "#81e085",
+      indicador == "Prestar dinero"  ~ "#04441e",
+      indicador == "Donar dinero"    ~ "#278b45",
 
       # ── Satisfacción con el barrio (naranjas fuertes, 4 ítems) ───────
-      indicador == "Amigos barrio"   ~ "#7F2704",
-      indicador == "Colaboración"    ~ "#A63603",
-      indicador == "Cordialidad"     ~ "#d85c1eff",
-      indicador == "Sociabilidad"    ~ "#f59357ff",
+      indicador == "Amigos barrio"   ~ "#752201",
+      indicador == "Colaboración"    ~ "#f16602",
+      indicador == "Cordialidad"     ~ "#fab49f",
+      indicador == "Sociabilidad"    ~ "#866550",
 
       # ── Pertenencia al Barrio (naranjas más suaves, 4 ítems) ─────────
-      indicador == "Barrio ideal"    ~ "#FD8D3C",
-      indicador == "Identidad"       ~ "#FDAE6B",
-      indicador == "Integración"     ~ "#FDD0A2",
-      indicador == "Pertenencia"     ~ "#FEE6CE",
+      indicador == "Barrio ideal"    ~ "#752201",
+      indicador == "Identidad"       ~ "#f16602",
+      indicador == "Integración"     ~ "#fab49f",
+      indicador == "Pertenencia"     ~ "#866550",
 
       # ── Confianza en instituciones políticas (rojos bien separados) ──
-      indicador == "Congreso"  ~ "#81000bff",
-      indicador == "Gobierno"  ~ "#ED0000",
-      indicador == "Partidos"  ~ "#ff9178ff",
+      indicador == "Congreso"  ~ "#5f0a11",
+      indicador == "Gobierno"  ~ "#d81f1f",
+      indicador == "Partidos"  ~ "#f09d8a",
 
       # ── Confianza interpersonal (neutros cálidos contrastantes) ──────
-      indicador == "Conf. general"   ~ "#8C564B",
+      indicador == "Confianza general"   ~ "#833e30",
       indicador == "Altruismo"       ~ "#C49C94",
 
       # ── Interés en política (azules-verdes diferenciados) ────────────
-      indicador == "Consume información"  ~ "#00f2ffff",
-      indicador == "Interés político"  ~ "#00aeffff",
-      indicador == "Habla temas políticos" ~ "#005e66ff",
+      indicador == "Consume información"  ~ "#7ab6e0",
+      indicador == "Interés político"  ~ "#033b74",
+      indicador == "Habla temas políticos" ~ "#1a82b6",
 
       # ── Justicia distributiva (verdes oliva bien contrastados) ───────
-      indicador == "Educación"  ~ "#74C476",
-      indicador == "Pensiones"  ~ "#f02727ff",
-      indicador == "Salud"  ~ "#006D2C", 
+      indicador == "Educación"  ~ "#66ad5d",
+      indicador == "Pensiones"  ~ "#af9e02",
+      indicador == "Salud"  ~ "#026128", 
 
       # ── Participación política (grises + azules para destacar) ───────
-      indicador == "Marchas"         ~ "#2c2c2c",
-      indicador == "Peticiones"      ~ "#585858",
-      indicador == "Huelgas"         ~ "#969696",
-      indicador == "Reuniones"       ~ "#0059FF",
-      indicador == "Voluntariado"    ~ "#dae6ffff",
+      indicador == "Marchas"         ~ "#1a82b6",
+      indicador == "Peticiones"      ~ "#7ab6e0",
+      indicador == "Huelgas"         ~ "#033b74",
+      # ── Comportamiento prosocial (grises + azules para destacar) ───────
+      indicador == "Reuniones"       ~ "#1a57c9",
+      indicador == "Voluntariado"    ~ "#617ebd",
       # ── Seguridad subjetiva (morado/rosa muy diferenciados) ──────────
-      indicador == "Percepción" ~ "#ff9494ff",
-      indicador == "Satisfacción"  ~ "#0059FF",
+      indicador == "Percepción" ~ "#eb8585",
+      indicador == "Satisfacción"  ~ "#9e3b02ff",
       # ── Seguridad objetiva (magenta/fucsia muy distintivos) ──────────
       indicador == "Asaltos"         ~ "#7A0177",
       indicador == "Peleas"          ~ "#AE017E",
-      indicador == "Tráfico drogas"  ~ "#DD3497"
+      indicador == "Tráfico drogas"  ~ "#e685bd"
     )
   )
 
@@ -1033,86 +1043,101 @@ observeEvent(input$subdim_ranking, {
 # Render del gráfico de barras
 output$bar_plot <- renderPlotly({
   df_long_for_barplot <- bar_data() 
-  paleta_fija <- unique(bar_data()$color) #paleta de colores fija 
-    
+  
   req(all(c("ola","indicador","prop") %in% names(df_long_for_barplot)))
   validate(need(nrow(df_long_for_barplot) > 0,
            "No hay datos para la dimensión seleccionada."))
   validate(need(!all(is.na(df_long_for_barplot$prop)),
            "No hay valores disponibles (todo es NA) para esta selección."))
+  
+  # SOLUCIÓN: Crear un vector nombrado de colores basado en el orden alfabético de indicadores
+  # Plotly ordena los indicadores alfabéticamente internamente
+  indicadores_unicos <- sort(unique(df_long_for_barplot$indicador))
+  
+  # Crear un dataframe auxiliar con la correspondencia indicador-color
+  color_map <- df_long_for_barplot %>%
+    dplyr::distinct(indicador, color) %>%
+    dplyr::arrange(indicador)  # Ordenar alfabéticamente
+  
+  # Crear vector nombrado: nombres = indicadores, valores = colores
+  paleta_fija <- setNames(color_map$color, color_map$indicador)
+  
   fname <- paste0(input$ola_ranking, "_", input$subdim_ranking)
   
-  plot_ly(data = df_long_for_barplot, x = ~ola, y = ~prop, color = ~indicador,colors = paleta_fija,
+  plot_ly(data = df_long_for_barplot, 
+    x = ~ola, 
+    y = ~prop, 
+    color = ~indicador,
+    colors = paleta_fija,  # Ahora es un vector nombrado
     opacity = 1,
     marker = list(opacity = 1),
     selected   = list(marker = list(opacity = 1)),
     unselected = list(marker = list(opacity = 1)),
-    type = "bar", hoverinfo = "text",
+    type = "bar", 
+    hoverinfo = "text",
     text = ~paste0("Año: ", ola, "<br>Indicadores: ", indicador,
                    "<br>Proporción: ", round(prop, 2), "%"),
     textposition = "none") %>%
     layout(barmode = "group",
       title = list(
-    text = paste0("Comparación para categoría 'Alta' en indicadores de ",
+        text = paste0("Comparación para categoría 'Alta' en indicadores de ",
                      "subdimensión ", input$subdim_ranking),
-    # x = 0,              # ← 0 = left, 0.5 = center, 1 = right
-    xanchor = "center",   # anchor aligns the title text relative to x
-    # y = 0,              # (optional) vertical position
-    yanchor = "top",    # anchor vertically
-    font = list(size = 18, family = "Arial", color = "black")
-    ),
-    xaxis = list(title = "Ola"),
-    yaxis = list(title = "Proporción", range = c(0, 100), ticksuffix = "%"),
-      legend = list(title = list(text = "Indicador"),
+        xanchor = "center",
+        yanchor = "top",
+        font = list(size = 18, family = "Arial", color = "black")
+      ),
+      xaxis = list(title = "Ola"),
+      yaxis = list(title = "Proporción", range = c(0, 100), ticksuffix = "%"),
+      legend = list(
+        title = list(text = "Indicador"),
         orientation = "h",
-        xanchor = "right",yanchor = "bottom",
-        x = 1,y = -0.3
-        ),
-      margin = list(t = 120,r = 120),
+        xanchor = "right",
+        yanchor = "bottom",
+        x = 1.1, 
+        y = -0.3
+      ),
+      margin = list(t = 120, r = 120),
       images = list(
         list(
-          source = "www/images/logo-ocs-25.png",  # o una ruta local
+          source = "www/images/logo-ocs-25.png",
           xref = "paper", yref = "paper",
-          x = 1.07, y = 1.2,  # posición (ajustable)
+          x = 1.07, y = 1.2,
           sizex = 0.25, sizey = 0.2,
           xanchor = "right", yanchor = "top",
           layer = "above"
-          )
-        ),
-    annotations = list(
+        )
+      ),
+      annotations = list(
         list(
           text = "Fuente: Encuesta Longitudinal Social de Chile (ELSOC), COES. N = 3,666 (individuos)",
           xref = "paper", yref = "paper",
-          x = 0, y = -0.21,
+          x = -0.05, y = -0.21,
           xanchor = "left", yanchor = "top",
           showarrow = FALSE,
           font = list(size = 12, color = "gray40")
-          ),
+        ),
         list(
-        text = "Los años que no cuentan con barras se debe a que no hay datos disponibles para esa ola.",
-        xref = "paper",
-        yref = "paper",
-        x = 0,
-        y = -0.27,
-        xanchor = "left",
-        yanchor = "top",
-        align = "left",
-        showarrow = FALSE,
-        font = list(size = 12, color = "gray40")
-      )
-        )    
-      ) %>% 
+          text = "Las variables que no cuentan con barras se debe a que no hay datos disponibles para ese año.",
+          xref = "paper", yref = "paper",
+          x = -0.05, y = -0.27,
+          xanchor = "left", yanchor = "top",
+          align = "left",
+          showarrow = FALSE,
+          font = list(size = 12, color = "gray40")
+        )
+      )    
+    ) %>% 
     config(
-    displaylogo = TRUE,
-    toImageButtonOptions = list(
-      format = "png",
-      filename = paste0(stringi::stri_replace_all_regex((tolower(input$subdim_ranking)), "[^A-Za-z]", "")), 
-      height = 700,
-      width  = 1200,
-      scale  = 2
+      displaylogo = TRUE,
+      toImageButtonOptions = list(
+        format = "png",
+        filename = paste0(stringi::stri_replace_all_regex((tolower(input$subdim_ranking)), "[^A-Za-z]", "")), 
+        height = 700,
+        width  = 1200,
+        scale  = 2
       ),
-    modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
-                               "resetScale2d", "toggleSpikelines")
+      modeBarButtonsToRemove = c("zoom2d", "select2d", "lasso2d", "autoScale2d",
+                                 "resetScale2d", "toggleSpikelines")
     ) 
 }) %>% shiny::bindEvent(input$subdim_ranking, input$ika, input$ola_ranking)
 
